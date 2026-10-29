@@ -28,6 +28,8 @@ def pytest_configure(config: pytest.Config) -> None:
     # Required settings; only the seeding tests care about their values.
     os.environ["ADMIN_EMAIL"] = "owner@example.com"
     os.environ["ADMIN_PASSWORD"] = "seed-password"
+    os.environ["IMAGE_SIGNING_KEY"] = "ab" * 32
+    os.environ["IMAGE_SIGNING_SALT"] = "cd" * 32
     run_dbmate(_data_dir)
 
 

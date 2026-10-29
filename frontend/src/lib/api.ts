@@ -76,3 +76,63 @@ export const logout = () =>
 	request<null>({ method: "post", url: "/auth/logout" });
 
 export const getMe = () => request<User>({ method: "get", url: "/auth/me" });
+
+export interface Album {
+	id: number;
+	title: string;
+	createdAt: string;
+	photoCount: number;
+	coverUrl: string | null;
+}
+
+export interface Photo {
+	id: number;
+	sizeBytes: number;
+	createdAt: string;
+	urls: { thumb: string; deck: string; viewer: string };
+}
+
+// Mirrors the backend's limits. They are only here to answer before sending;
+// the server stays the authority and rejects anything outside them.
+export const MAX_PHOTO_BYTES = 20 * 1024 * 1024;
+export const MAX_PHOTOS_PER_ALBUM = 50;
+export const ACCEPTED_PHOTO_TYPES = ["image/jpeg", "image/png", "image/webp"];
+
+export const listAlbums = () =>
+	request<Album[]>({ method: "get", url: "/albums" });
+
+export const getAlbum = (albumId: number) =>
+	request<Album>({ method: "get", url: `/albums/${albumId}` });
+
+export const createAlbum = (title: string) =>
+	request<Album>({ method: "post", url: "/albums", data: { title } });
+
+export const deleteAlbum = (albumId: number) =>
+	request<null>({ method: "delete", url: `/albums/${albumId}` });
+
+export const listPhotos = (albumId: number) =>
+	request<Photo[]>({ method: "get", url: `/albums/${albumId}/photos` });
+
+export const uploadPhoto = (
+	albumId: number,
+	file: File,
+	onProgress?: (percent: number) => void,
+) => {
+	const data = new FormData();
+	data.append("file", file);
+	return request<Photo>({
+		method: "post",
+		url: `/albums/${albumId}/photos`,
+		data,
+		onUploadProgress: (event) => {
+			if (event.total)
+				onProgress?.(Math.round((event.loaded / event.total) * 100));
+		},
+	});
+};
+
+export const deletePhoto = (albumId: number, photoId: number) =>
+	request<null>({
+		method: "delete",
+		url: `/albums/${albumId}/photos/${photoId}`,
+	});

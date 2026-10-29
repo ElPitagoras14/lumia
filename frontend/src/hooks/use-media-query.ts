@@ -1,0 +1,17 @@
+import { useSyncExternalStore } from "react";
+
+/**
+ * Whether a CSS media query currently matches, kept in sync as the window
+ * changes. Starts `false` where `matchMedia` does not exist.
+ */
+export function useMediaQuery(query: string): boolean {
+	return useSyncExternalStore(
+		(onChange) => {
+			const list = window.matchMedia(query);
+			list.addEventListener("change", onChange);
+			return () => list.removeEventListener("change", onChange);
+		},
+		() => window.matchMedia(query).matches,
+		() => false,
+	);
+}

@@ -44,10 +44,24 @@ Data (`lumia.db` and the photo originals) lives in the `lumia-data` volume. `doc
 | -------------------- | ----------------------- | -------------------------------------------------------------- |
 | `HTTP_PORT`          | `nginx`                 | Host port where the app is served                              |
 | `DATA_DIR`           | `backend`               | Directory with `lumia.db` and the originals (`/data` in containers, `./data` natively) |
-| `IMAGE_SIGNING_KEY`  | `transformer`           | Hex key for imgproxy URL signatures                            |
-| `IMAGE_SIGNING_SALT` | `transformer`           | Hex salt for imgproxy URL signatures                           |
+| `IMAGE_SIGNING_KEY`  | `transformer`, `backend` | Hex key for imgproxy URL signatures; the backend signs the variant URLs with it |
+| `IMAGE_SIGNING_SALT` | `transformer`, `backend` | Hex salt for imgproxy URL signatures                           |
+| `IMAGE_WARMUP_BASE_URL` | `backend`            | Where the backend requests a new photo's thumbnail to fill nginx's cache (default `http://nginx`, set by `compose.yaml`; optional, a failure is ignored) |
 | `ADMIN_EMAIL`        | `backend`               | Email of the owner account, created on the first start         |
 | `ADMIN_PASSWORD`     | `backend`               | Password of the owner account, 8 characters to 72 bytes        |
+
+## Albums and photos
+
+The owner creates albums and uploads photos from the web app, or through the API (`/api/albums`, `/api/albums/{id}/photos`; interactive docs at `/docs` when the backend runs natively).
+
+| Rule              | Value                                                                    |
+| ----------------- | ------------------------------------------------------------------------ |
+| Formats           | JPEG, PNG and WebP, detected from the file's content (HEIC is not accepted) |
+| Size              | 20 MiB per photo                                                         |
+| Photos per album  | 50                                                                       |
+| Upload            | One file per request; the originals are stored under `/data/photos/<uuid>` |
+
+The backend never processes images: the API returns signed `/images/...` URLs for three WebP variants (thumbnail 320 px, deck 1080 px, viewer 1920 px, longest side), which imgproxy generates and nginx caches. Deleting a photo or an album removes the originals from disk.
 
 ## Migrations
 
