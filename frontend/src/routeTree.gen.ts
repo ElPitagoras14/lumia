@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as OwnerRouteImport } from './routes/_owner'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as OwnerIndexRouteImport } from './routes/_owner/index'
+import { Route as ATokenRouteImport } from './routes/a/$token'
 import { Route as OwnerAlbumsAlbumIdRouteImport } from './routes/_owner/albums/$albumId'
 
 const OwnerRoute = OwnerRouteImport.update({
@@ -28,6 +29,11 @@ const OwnerIndexRoute = OwnerIndexRouteImport.update({
   path: '/',
   getParentRoute: () => OwnerRoute,
 } as any)
+const ATokenRoute = ATokenRouteImport.update({
+  id: '/a/$token',
+  path: '/a/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const OwnerAlbumsAlbumIdRoute = OwnerAlbumsAlbumIdRouteImport.update({
   id: '/albums/$albumId',
   path: '/albums/$albumId',
@@ -37,10 +43,12 @@ const OwnerAlbumsAlbumIdRoute = OwnerAlbumsAlbumIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof OwnerIndexRoute
   '/login': typeof LoginRoute
+  '/a/$token': typeof ATokenRoute
   '/albums/$albumId': typeof OwnerAlbumsAlbumIdRoute
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
+  '/a/$token': typeof ATokenRoute
   '/': typeof OwnerIndexRoute
   '/albums/$albumId': typeof OwnerAlbumsAlbumIdRoute
 }
@@ -48,20 +56,28 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_owner': typeof OwnerRouteWithChildren
   '/login': typeof LoginRoute
+  '/a/$token': typeof ATokenRoute
   '/_owner/': typeof OwnerIndexRoute
   '/_owner/albums/$albumId': typeof OwnerAlbumsAlbumIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login' | '/albums/$albumId'
+  fullPaths: '/' | '/login' | '/a/$token' | '/albums/$albumId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/login' | '/' | '/albums/$albumId'
-  id: '__root__' | '/_owner' | '/login' | '/_owner/' | '/_owner/albums/$albumId'
+  to: '/login' | '/a/$token' | '/' | '/albums/$albumId'
+  id:
+    | '__root__'
+    | '/_owner'
+    | '/login'
+    | '/a/$token'
+    | '/_owner/'
+    | '/_owner/albums/$albumId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   OwnerRoute: typeof OwnerRouteWithChildren
   LoginRoute: typeof LoginRoute
+  ATokenRoute: typeof ATokenRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -86,6 +102,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof OwnerIndexRouteImport
       parentRoute: typeof OwnerRoute
+    }
+    '/a/$token': {
+      id: '/a/$token'
+      path: '/a/$token'
+      fullPath: '/a/$token'
+      preLoaderRoute: typeof ATokenRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_owner/albums/$albumId': {
       id: '/_owner/albums/$albumId'
@@ -112,6 +135,7 @@ const OwnerRouteWithChildren = OwnerRoute._addFileChildren(OwnerRouteChildren)
 const rootRouteChildren: RootRouteChildren = {
   OwnerRoute: OwnerRouteWithChildren,
   LoginRoute: LoginRoute,
+  ATokenRoute: ATokenRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

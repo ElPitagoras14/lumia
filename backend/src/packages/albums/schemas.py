@@ -16,6 +16,8 @@ class AlbumRecord(BaseModel):
     photo_count: int
     # The first photo uploaded, which the list shows as the album's cover.
     cover_key: str | None
+    share_token: str | None
+    participant_count: int
 
 
 class StorageKeyRecord(BaseModel):

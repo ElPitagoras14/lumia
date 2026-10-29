@@ -12,7 +12,10 @@ _ALBUM_COLUMNS = """
     a.created_at,
     (SELECT COUNT(*) FROM photos p WHERE p.album_id = a.id) AS photo_count,
     (SELECT p.storage_key FROM photos p WHERE p.album_id = a.id
-        ORDER BY p.id LIMIT 1) AS cover_key
+        ORDER BY p.id LIMIT 1) AS cover_key,
+    (SELECT s.token FROM share_tokens s WHERE s.album_id = a.id) AS share_token,
+    (SELECT COUNT(*) FROM participants pa WHERE pa.album_id = a.id)
+        AS participant_count
 """
 
 

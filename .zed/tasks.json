@@ -1,0 +1,14 @@
+// Zed tasks (https://zed.dev/docs/tasks). Run one with `task: spawn`.
+[
+  {
+    // Reads API_PROXY_TARGET from the repository's .env, so it forwards /api
+    // and /images to the Docker stack (or to the native backend on :8000 when
+    // the variable is unset).
+    "label": "Frontend: dev server",
+    "command": "pnpm dev",
+    "cwd": "$ZED_WORKTREE_ROOT/frontend",
+    "use_new_terminal": false,
+    "allow_concurrent_runs": false,
+    "reveal": "always"
+  }
+]

@@ -270,7 +270,7 @@ export function UploadPhotosDialog({
 				// picker, and it steps back once there is something to upload.
 				<Button
 					variant={items.length > 0 ? "outline" : "default"}
-					className="h-14 w-full text-base"
+					className="w-full"
 					disabled={zoneDisabled}
 					onClick={() => fileInput.current?.click()}
 				>
@@ -297,14 +297,14 @@ export function UploadPhotosDialog({
 	const action =
 		pending.length === 0 && !uploading && done > 0 ? (
 			<Button
-				className="h-12 w-full md:h-11 md:w-auto"
+				className="w-full md:w-auto"
 				onClick={() => handleOpenChange(false)}
 			>
 				Listo
 			</Button>
 		) : (
 			<Button
-				className="h-12 w-full md:h-11 md:w-auto"
+				className="w-full md:w-auto"
 				disabled={uploading || pending.length === 0}
 				onClick={start}
 			>
@@ -420,8 +420,8 @@ function ItemRow({ item, onRemove }: { item: Item; onRemove: () => void }) {
 				item.state === "invalid") && (
 				<Button
 					variant="ghost"
-					size="icon-lg"
-					className="size-11 shrink-0"
+					size="icon"
+					className="shrink-0"
 					aria-label={`Quitar ${item.file.name}`}
 					onClick={onRemove}
 				>

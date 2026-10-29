@@ -83,6 +83,15 @@ export interface Album {
 	createdAt: string;
 	photoCount: number;
 	coverUrl: string | null;
+	// Null while the album has no link; the link is `/a/<shareToken>`.
+	shareToken: string | null;
+	participantCount: number;
+}
+
+export interface SharedAlbum {
+	album: { title: string; photoCount: number };
+	// Null until this browser has joined the album with a name.
+	participant: { name: string } | null;
 }
 
 export interface Photo {
@@ -135,4 +144,19 @@ export const deletePhoto = (albumId: number, photoId: number) =>
 	request<null>({
 		method: "delete",
 		url: `/albums/${albumId}/photos/${photoId}`,
+	});
+
+// Creates the album's link or replaces the current one: for the server,
+// generating and revoking are the same operation.
+export const generateShareLink = (albumId: number) =>
+	request<Album>({ method: "post", url: `/albums/${albumId}/share` });
+
+export const getSharedAlbum = (token: string) =>
+	request<SharedAlbum>({ method: "get", url: `/share/${token}` });
+
+export const joinSharedAlbum = (token: string, name: string) =>
+	request<{ name: string }>({
+		method: "post",
+		url: `/share/${token}/participants`,
+		data: { name },
 	});

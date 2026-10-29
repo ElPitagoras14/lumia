@@ -12,6 +12,7 @@ import {
 	AlertDialogHeader,
 	AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -66,11 +67,11 @@ function Home() {
 		<main className="mx-auto flex min-h-svh max-w-md flex-col gap-6 px-4 py-6">
 			<header className="flex items-center justify-between gap-3">
 				<div className="flex min-w-0 items-center gap-3">
-					<div className="grid size-10 shrink-0 place-items-center rounded-xl bg-primary text-primary-foreground">
+					<div className="grid size-10 shrink-0 place-items-center rounded-lg bg-primary text-primary-foreground">
 						<Images aria-hidden />
 					</div>
 					<div className="min-w-0">
-						<h1 className="text-lg leading-tight font-semibold">Lumia</h1>
+						<h1 className="text-base leading-tight font-semibold">Lumia</h1>
 						<p className="truncate text-sm text-muted-foreground">
 							{user.email}
 						</p>
@@ -78,7 +79,7 @@ function Home() {
 				</div>
 				<Button
 					variant="outline"
-					className="h-11 shrink-0"
+					className=" shrink-0"
 					disabled={signOut.isPending}
 					onClick={() => signOut.mutate()}
 				>
@@ -89,8 +90,8 @@ function Home() {
 
 			<section className="flex flex-col gap-4">
 				<div className="flex items-center justify-between gap-3">
-					<h2 className="text-xl font-semibold">Tus álbumes</h2>
-					<Button className="h-11" onClick={() => setCreating(true)}>
+					<h2 className="text-lg font-semibold">Tus álbumes</h2>
+					<Button onClick={() => setCreating(true)}>
 						<Plus aria-hidden />
 						Nuevo álbum
 					</Button>
@@ -188,10 +189,10 @@ function AlbumCard({
 					<img
 						src={album.coverUrl}
 						alt=""
-						className="size-18 shrink-0 rounded-lg object-cover"
+						className="size-14 shrink-0 rounded-lg object-cover"
 					/>
 				) : (
-					<div className="grid size-18 shrink-0 place-items-center rounded-lg bg-muted text-muted-foreground">
+					<div className="grid size-14 shrink-0 place-items-center rounded-lg bg-muted text-muted-foreground">
 						<Images aria-hidden />
 					</div>
 				)}
@@ -200,12 +201,18 @@ function AlbumCard({
 					<p className="text-sm text-muted-foreground">
 						{album.photoCount === 1 ? "1 foto" : `${album.photoCount} fotos`}
 					</p>
+					<Badge
+						variant={album.shareToken ? "default" : "outline"}
+						className="mt-1"
+					>
+						{album.shareToken ? "Enlace activo" : "Sin enlace"}
+					</Badge>
 				</div>
 			</Link>
 			<Button
 				variant="ghost"
-				size="icon-lg"
-				className="size-11 shrink-0"
+				size="icon"
+				className="shrink-0"
 				aria-label={`Borrar el álbum ${album.title}`}
 				onClick={onDelete}
 			>
@@ -271,7 +278,6 @@ function CreateAlbumDialog({
 							required
 							maxLength={100}
 							autoComplete="off"
-							className="h-12 px-3.5"
 							value={title}
 							onChange={(event) => setTitle(event.target.value)}
 						/>
@@ -284,7 +290,6 @@ function CreateAlbumDialog({
 					<DialogFooter>
 						<Button
 							type="submit"
-							className="h-11"
 							disabled={create.isPending || title.trim() === ""}
 						>
 							Crear álbum
