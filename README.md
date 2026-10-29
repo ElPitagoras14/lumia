@@ -57,6 +57,27 @@ docker compose run --rm migrate        # migrate without starting the API
 
 dbmate is pinned to `ghcr.io/amacneil/dbmate:2.35.1` in `dbmate/Dockerfile`, `backend/tests/migrate.py` and this README; change all three together (`grep -rn "amacneil/dbmate"`).
 
+## Data model
+
+The schema lives in `dbmate/migrations/0002_data_model.sql`.
+
+| Table          | Purpose                                                                 |
+| -------------- | ----------------------------------------------------------------------- |
+| `users`        | Album owners (a single seeded account in 0.1.0, multi-user ready)       |
+| `sessions`     | Owner login sessions, with expiry                                       |
+| `albums`       | Albums, each owned by one user                                          |
+| `photos`       | Uploaded photos; `storage_key` names the original in `/data/photos/`    |
+| `share_tokens` | The album's share link, at most one per album                           |
+| `participants` | Guests who opened the link and entered a name; they belong to the album |
+| `ratings`      | One vote per photo and participant; a missing row means pending         |
+
+The database enforces these rules itself, so they hold even if an endpoint is wrong:
+
+- A vote's photo and participant always belong to the same album, and a pair has at most one vote.
+- Deleting an album removes its photos, link, participants and votes; deleting a photo or a participant removes their votes. A user with albums cannot be deleted, because rows would go while their files stay on disk.
+- Revoking the share link does not touch participants or their votes.
+- Cookie secrets are stored only as SHA-256 hashes (`token_hash`), never in clear.
+
 ## Native mode
 
 Run the backend and the frontend on the host, with the same variable names as in containers. Only `DATA_DIR` changes. Images are not served in this mode, because imgproxy runs only in Docker.

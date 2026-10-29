@@ -17,7 +17,7 @@ def test_migrating_a_missing_database_creates_it_at_the_latest_version(tmp_path)
     run_dbmate(tmp_path)
 
     assert db_path.exists()
-    assert _applied_versions(db_path) == ["0001"]
+    assert _applied_versions(db_path) == ["0001", "0002"]
 
 
 def test_migrating_an_up_to_date_database_applies_nothing(tmp_path):
@@ -26,4 +26,4 @@ def test_migrating_an_up_to_date_database_applies_nothing(tmp_path):
     second = run_dbmate(tmp_path)
 
     assert "Applying" not in second.stdout
-    assert _applied_versions(tmp_path / "lumia.db") == ["0001"]
+    assert _applied_versions(tmp_path / "lumia.db") == ["0001", "0002"]
