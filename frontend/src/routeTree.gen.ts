@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as OwnerRouteImport } from './routes/_owner'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as OwnerIndexRouteImport } from './routes/_owner/index'
+import { Route as OwnerAlbumsAlbumIdRouteImport } from './routes/_owner/albums/$albumId'
 
 const OwnerRoute = OwnerRouteImport.update({
   id: '/_owner',
@@ -27,27 +28,35 @@ const OwnerIndexRoute = OwnerIndexRouteImport.update({
   path: '/',
   getParentRoute: () => OwnerRoute,
 } as any)
+const OwnerAlbumsAlbumIdRoute = OwnerAlbumsAlbumIdRouteImport.update({
+  id: '/albums/$albumId',
+  path: '/albums/$albumId',
+  getParentRoute: () => OwnerRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof OwnerIndexRoute
   '/login': typeof LoginRoute
+  '/albums/$albumId': typeof OwnerAlbumsAlbumIdRoute
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/': typeof OwnerIndexRoute
+  '/albums/$albumId': typeof OwnerAlbumsAlbumIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_owner': typeof OwnerRouteWithChildren
   '/login': typeof LoginRoute
   '/_owner/': typeof OwnerIndexRoute
+  '/_owner/albums/$albumId': typeof OwnerAlbumsAlbumIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login'
+  fullPaths: '/' | '/login' | '/albums/$albumId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/login' | '/'
-  id: '__root__' | '/_owner' | '/login' | '/_owner/'
+  to: '/login' | '/' | '/albums/$albumId'
+  id: '__root__' | '/_owner' | '/login' | '/_owner/' | '/_owner/albums/$albumId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -78,15 +87,24 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OwnerIndexRouteImport
       parentRoute: typeof OwnerRoute
     }
+    '/_owner/albums/$albumId': {
+      id: '/_owner/albums/$albumId'
+      path: '/albums/$albumId'
+      fullPath: '/albums/$albumId'
+      preLoaderRoute: typeof OwnerAlbumsAlbumIdRouteImport
+      parentRoute: typeof OwnerRoute
+    }
   }
 }
 
 interface OwnerRouteChildren {
   OwnerIndexRoute: typeof OwnerIndexRoute
+  OwnerAlbumsAlbumIdRoute: typeof OwnerAlbumsAlbumIdRoute
 }
 
 const OwnerRouteChildren: OwnerRouteChildren = {
   OwnerIndexRoute: OwnerIndexRoute,
+  OwnerAlbumsAlbumIdRoute: OwnerAlbumsAlbumIdRoute,
 }
 
 const OwnerRouteWithChildren = OwnerRoute._addFileChildren(OwnerRouteChildren)

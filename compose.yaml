@@ -39,6 +39,11 @@ services:
       # them the backend does not start.
       ADMIN_EMAIL: ${ADMIN_EMAIL}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+      # Signs the image variant URLs; imgproxy validates them with the same
+      # pair.
+      IMAGE_SIGNING_KEY: ${IMAGE_SIGNING_KEY}
+      IMAGE_SIGNING_SALT: ${IMAGE_SIGNING_SALT}
+      IMAGE_WARMUP_BASE_URL: http://nginx
     volumes:
       - lumia-data:/data
     depends_on:
