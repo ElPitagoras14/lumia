@@ -1,0 +1,82 @@
+# The whole local environment. Only nginx publishes a port; every other
+# service is reachable only through it, on the `lumia` network.
+services:
+  nginx:
+    build: ./nginx
+    restart: unless-stopped
+    ports:
+      - "${HTTP_PORT}:80"
+    volumes:
+      - nginx-cache:/var/cache/nginx
+    networks:
+      - lumia
+
+  frontend:
+    build: ./frontend
+    restart: unless-stopped
+    networks:
+      - lumia
+
+  # Applies pending migrations and exits. The migrations are baked into the
+  # image, so nothing is mounted over /db.
+  migrate:
+    build: ./dbmate
+    restart: "no"
+    command: ["--no-dump-schema", "up"]
+    environment:
+      DATABASE_URL: sqlite:/data/lumia.db
+    volumes:
+      - lumia-data:/data
+    networks:
+      - lumia
+
+  backend:
+    build: ./backend
+    restart: unless-stopped
+    environment:
+      DATA_DIR: ${DATA_DIR}
+    volumes:
+      - lumia-data:/data
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health')"
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+    networks:
+      - lumia
+
+  transformer:
+    image: darthsim/imgproxy:v4.0.14
+    restart: unless-stopped
+    environment:
+      IMGPROXY_KEY: ${IMAGE_SIGNING_KEY}
+      IMGPROXY_SALT: ${IMAGE_SIGNING_SALT}
+      IMGPROXY_PATH_PREFIX: /images
+      IMGPROXY_LOCAL_FILESYSTEM_ROOT: /data
+      # Only originals under /data/photos; never remote URLs, even signed.
+      IMGPROXY_ALLOWED_SOURCES: local:///photos/
+      IMGPROXY_MAX_SRC_FILE_SIZE: "20971520"
+    volumes:
+      - lumia-data:/data:ro
+    healthcheck:
+      test: ["CMD", "imgproxy", "health"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    networks:
+      - lumia
+
+networks:
+  lumia:
+
+volumes:
+  lumia-data:
+  nginx-cache:

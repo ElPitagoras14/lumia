@@ -1,0 +1,59 @@
+[project]
+name = "backend"
+version = "0.1.0"
+description = "FastAPI backend for Lumia (Python + uv, SQLAlchemy/SQLite, Pydantic Settings)."
+readme = "README.md"
+requires-python = ">=3.13"
+authors = [
+    { name = "ElPitagoras14" },
+]
+license = "MIT"
+keywords = ["fastapi", "template", "scaffold", "backend", "sqlalchemy", "uv"]
+dependencies = [
+    "bcrypt>=5.0.0",
+    "fastapi[standard]>=0.141.1",
+    "loguru>=0.7.3",
+    "pydantic>=2.13.5",
+    "pydantic-settings>=2.15.0",
+    "python-dotenv>=1.2.3",
+    "sqlalchemy>=2.0.52",
+]
+
+[project.urls]
+Repository = "https://github.com/ElPitagoras14/scaffold-base"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.2.0",
+    "ruff>=0.17.1",
+]
+
+[tool.ruff]
+line-length = 88
+target-version = "py313"
+src = ["."]
+
+[tool.ruff.lint]
+select = [
+    "E",    # pycodestyle errors
+    "W",    # pycodestyle warnings
+    "F",    # pyflakes
+    "I",    # isort
+    "B",    # flake8-bugbear
+    "UP",   # pyupgrade
+    "SIM",  # flake8-simplify
+    "C4",   # flake8-comprehensions
+    "RUF",  # ruff-specific rules
+]
+
+[tool.ruff.lint.flake8-bugbear]
+# Let FastAPI dependency injection use calls in defaults (e.g. Depends())
+extend-immutable-calls = ["fastapi.Depends", "fastapi.Query", "fastapi.Body"]
+
+[tool.ruff.format]
+quote-style = "double"
+docstring-code-format = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]

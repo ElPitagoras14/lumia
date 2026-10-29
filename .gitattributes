@@ -1,0 +1,7 @@
+# Auto detect text files and check them out with LF everywhere, regardless of
+# core.autocrlf: Biome and the container images expect LF.
+* text=auto eol=lf
+
+# Shell scripts must always use LF (for Linux containers)
+*.sh text eol=lf
+.githooks/* text eol=lf
