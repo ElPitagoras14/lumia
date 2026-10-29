@@ -25,6 +25,9 @@ def pytest_configure(config: pytest.Config) -> None:
     global _data_dir
     _data_dir = Path(tempfile.mkdtemp(prefix="lumia-test-"))
     os.environ["DATA_DIR"] = str(_data_dir)
+    # Required settings; only the seeding tests care about their values.
+    os.environ["ADMIN_EMAIL"] = "owner@example.com"
+    os.environ["ADMIN_PASSWORD"] = "seed-password"
     run_dbmate(_data_dir)
 
 

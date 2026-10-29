@@ -35,6 +35,10 @@ services:
     restart: unless-stopped
     environment:
       DATA_DIR: ${DATA_DIR}
+      # Only the first start uses them (to create the owner), but without
+      # them the backend does not start.
+      ADMIN_EMAIL: ${ADMIN_EMAIL}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
     volumes:
       - lumia-data:/data
     depends_on:
