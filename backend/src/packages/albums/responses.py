@@ -9,6 +9,8 @@ class AlbumResponse(ApiModel):
     created_at: str
     photo_count: int
     cover_url: str | None
+    share_token: str | None
+    participant_count: int
 
     @classmethod
     def from_record(cls, album: AlbumRecord) -> "AlbumResponse":
@@ -20,4 +22,6 @@ class AlbumResponse(ApiModel):
             cover_url=(
                 variant_url(album.cover_key, "thumb") if album.cover_key else None
             ),
+            share_token=album.share_token,
+            participant_count=album.participant_count,
         )

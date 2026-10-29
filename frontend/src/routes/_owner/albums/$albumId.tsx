@@ -1,7 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowLeft, ImagePlus, Trash2 } from "lucide-react";
+import { ArrowLeft, ImagePlus, Share2, Trash2 } from "lucide-react";
 import { useState } from "react";
+import { ShareAlbumDialog } from "@/components/share-album-dialog";
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -33,6 +34,7 @@ function AlbumScreen() {
 	const albumId = Number(rawId);
 	const queryClient = useQueryClient();
 	const [uploadOpen, setUploadOpen] = useState(false);
+	const [shareOpen, setShareOpen] = useState(false);
 	const [toDelete, setToDelete] = useState<Photo | null>(null);
 
 	const album = useQuery({
@@ -78,7 +80,7 @@ function AlbumScreen() {
 					<Skeleton className="h-8 w-2/3" />
 				) : (
 					<div>
-						<h1 className="text-2xl leading-tight font-semibold break-words">
+						<h1 className="text-xl leading-tight font-semibold break-words">
 							{album.data.title}
 						</h1>
 						<p className="text-sm text-muted-foreground">
@@ -89,14 +91,27 @@ function AlbumScreen() {
 			</header>
 
 			<section className="flex flex-col gap-2">
-				<Button
-					className="h-12 w-full text-base"
-					disabled={album.isPending || photos.isPending || remainingSlots <= 0}
-					onClick={() => setUploadOpen(true)}
-				>
-					<ImagePlus aria-hidden />
-					Subir fotos
-				</Button>
+				<div className="flex gap-2">
+					<Button
+						className="flex-1"
+						disabled={
+							album.isPending || photos.isPending || remainingSlots <= 0
+						}
+						onClick={() => setUploadOpen(true)}
+					>
+						<ImagePlus aria-hidden />
+						Subir fotos
+					</Button>
+					<Button
+						variant="outline"
+						className="flex-1"
+						disabled={album.isPending}
+						onClick={() => setShareOpen(true)}
+					>
+						<Share2 aria-hidden />
+						Compartir
+					</Button>
+				</div>
 				{remainingSlots <= 0 && (
 					<p className="text-[0.8125rem] text-muted-foreground">
 						El álbum está lleno.
@@ -133,8 +148,8 @@ function AlbumScreen() {
 							/>
 							<Button
 								variant="secondary"
-								size="icon-lg"
-								className="absolute top-1 right-1 size-9 bg-background/80"
+								size="icon"
+								className="absolute top-1 right-1 bg-background/80"
 								aria-label={`Borrar la foto ${index + 1}`}
 								onClick={() => setToDelete(photo)}
 							>
@@ -151,6 +166,14 @@ function AlbumScreen() {
 				open={uploadOpen}
 				onOpenChange={setUploadOpen}
 			/>
+
+			{album.isSuccess && (
+				<ShareAlbumDialog
+					album={album.data}
+					open={shareOpen}
+					onOpenChange={setShareOpen}
+				/>
+			)}
 
 			<AlertDialog
 				open={toDelete !== null}
@@ -197,7 +220,7 @@ function BackLink() {
 	return (
 		<Link
 			to="/"
-			className="inline-flex h-11 w-fit items-center gap-1.5 rounded-lg text-sm font-medium text-muted-foreground outline-none hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50"
+			className="inline-flex h-8 w-fit items-center gap-1.5 rounded-lg text-sm font-medium text-muted-foreground outline-none hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50"
 		>
 			<ArrowLeft className="size-4" aria-hidden />
 			Mis álbumes

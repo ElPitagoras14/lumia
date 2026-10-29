@@ -50,15 +50,15 @@ function Login() {
 	const rejected = isApiError(signIn.error, "invalid_credentials");
 
 	return (
-		<main className="mx-auto flex min-h-svh max-w-md flex-col gap-10 px-6 pt-24 pb-10">
+		<main className="mx-auto flex min-h-svh max-w-md flex-col gap-8 px-6 pt-12 pb-10">
 			<div className="flex flex-col items-start gap-4">
-				<div className="grid size-14 place-items-center rounded-2xl bg-primary text-primary-foreground">
-					<Images className="size-7" aria-hidden />
+				<div className="grid size-12 place-items-center rounded-xl bg-primary text-primary-foreground">
+					<Images className="size-6" aria-hidden />
 				</div>
-				<h1 className="text-[2.125rem] leading-[1.1] font-bold tracking-tight">
+				<h1 className="text-2xl leading-tight font-bold tracking-tight">
 					Lumia
 				</h1>
-				<p className="text-base text-muted-foreground">
+				<p className="text-sm text-muted-foreground">
 					Sube tus fotos, compártelas con un enlace y descubre cuáles gustan
 					más.
 				</p>
@@ -73,7 +73,6 @@ function Login() {
 						type="email"
 						autoComplete="email"
 						required
-						className="h-12 px-3.5"
 						value={email}
 						onChange={(event) => setEmail(event.target.value)}
 					/>
@@ -86,7 +85,6 @@ function Login() {
 						type="password"
 						autoComplete="current-password"
 						required
-						className="h-12 px-3.5"
 						value={password}
 						onChange={(event) => setPassword(event.target.value)}
 					/>
@@ -102,7 +100,7 @@ function Login() {
 
 				<Button
 					type="submit"
-					className="mt-2 h-12 w-full text-base font-semibold"
+					className="mt-2 w-full font-semibold"
 					disabled={signIn.isPending}
 				>
 					Iniciar sesión

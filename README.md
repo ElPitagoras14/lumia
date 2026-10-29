@@ -43,6 +43,7 @@ Data (`lumia.db` and the photo originals) lives in the `lumia-data` volume. `doc
 | Variable             | Used by                 | Description                                                    |
 | -------------------- | ----------------------- | -------------------------------------------------------------- |
 | `HTTP_PORT`          | `nginx`                 | Host port where the app is served                              |
+| `API_PROXY_TARGET`   | `pnpm dev` (optional)   | URL the Vite dev server forwards `/api` and `/images` to; unset, it uses the native backend on `:8000` |
 | `DATA_DIR`           | `backend`               | Directory with `lumia.db` and the originals (`/data` in containers, `./data` natively) |
 | `IMAGE_SIGNING_KEY`  | `transformer`, `backend` | Hex key for imgproxy URL signatures; the backend signs the variant URLs with it |
 | `IMAGE_SIGNING_SALT` | `transformer`, `backend` | Hex salt for imgproxy URL signatures                           |
@@ -62,6 +63,18 @@ The owner creates albums and uploads photos from the web app, or through the API
 | Upload            | One file per request; the originals are stored under `/data/photos/<uuid>` |
 
 The backend never processes images: the API returns signed `/images/...` URLs for three WebP variants (thumbnail 320 px, deck 1080 px, viewer 1920 px, longest side), which imgproxy generates and nginx caches. Deleting a photo or an album removes the originals from disk.
+
+## Sharing
+
+The owner opens an album and presses **Compartir** to create its link, `/a/<token>`. Pressing **Revocar y crear enlace nuevo** replaces it: the old token stops working immediately (the API answers `404`, the same as for a token that never existed) and the album gets a new one. An album has at most one link, through `POST /api/albums/{id}/share`.
+
+Guests need no account. Opening the link asks for a name (1 to 50 characters) and creates a participant of that album, identified by the `lumia_guest_<album id>` cookie: `HttpOnly`, `SameSite=Lax`, scoped to `/api` and kept for 400 days. The database stores only a hash of the cookie's secret.
+
+- Participants belong to the album, not to the link, so revoking the link keeps them and their votes: opening the new link with the same browser recognises them.
+- A browser without the cookie is always a new participant, even with the same name; progress is never recovered by name.
+- The copy button needs a secure context (`localhost` or HTTPS); over plain HTTP on another address the link is selected so it can be copied by hand.
+
+No new environment variables.
 
 ## Migrations
 
@@ -144,6 +157,13 @@ Run the backend and the frontend on the host, with the same variable names as in
    ```bash
    cd frontend
    pnpm dev
+   ```
+
+   To develop the frontend against the Docker stack instead (no rebuild on each change, and images work), set `API_PROXY_TARGET` to its nginx in the repository's `.env` (see `.env.example`); the dev server reads it from there. A value exported in the shell wins over the file:
+
+   ```bash
+   # .env
+   API_PROXY_TARGET=http://localhost:8080   # HTTP_PORT of the stack
    ```
 
 ## Backend (`backend/`)
