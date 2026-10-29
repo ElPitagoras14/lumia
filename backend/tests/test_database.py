@@ -2,7 +2,7 @@ import pytest
 from sqlalchemy import text
 from sqlalchemy.exc import IntegrityError
 
-from src.database import engine
+from src.database.client import engine
 
 
 @pytest.fixture

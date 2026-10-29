@@ -22,6 +22,7 @@ lumia/
 cp .env.example .env
 # fill IMAGE_SIGNING_KEY and IMAGE_SIGNING_SALT, e.g.:
 python -c "import secrets; print(secrets.token_hex(32))"
+# and ADMIN_EMAIL and ADMIN_PASSWORD: the owner account (see "Owner account")
 docker compose up --build
 ```
 
@@ -45,6 +46,8 @@ Data (`lumia.db` and the photo originals) lives in the `lumia-data` volume. `doc
 | `DATA_DIR`           | `backend`               | Directory with `lumia.db` and the originals (`/data` in containers, `./data` natively) |
 | `IMAGE_SIGNING_KEY`  | `transformer`           | Hex key for imgproxy URL signatures                            |
 | `IMAGE_SIGNING_SALT` | `transformer`           | Hex salt for imgproxy URL signatures                           |
+| `ADMIN_EMAIL`        | `backend`               | Email of the owner account, created on the first start         |
+| `ADMIN_PASSWORD`     | `backend`               | Password of the owner account, 8 characters to 72 bytes        |
 
 ## Migrations
 
@@ -78,6 +81,22 @@ The database enforces these rules itself, so they hold even if an endpoint is wr
 - Revoking the share link does not touch participants or their votes.
 - Cookie secrets are stored only as SHA-256 hashes (`token_hash`), never in clear.
 
+## Owner account
+
+The backend creates the owner from `ADMIN_EMAIL` and `ADMIN_PASSWORD` on its first start, and only while there are no users. After that it never touches the account: changing `ADMIN_PASSWORD` in `.env` does not change the password, but the variable must stay set or the backend will not start. Once you have signed in, you can replace the real password in `.env` with any placeholder that meets the length limits.
+
+The email has to be valid for the [email-validator](https://pypi.org/project/email-validator/) library, which rejects reserved domains such as `.local`, `.test` and `localhost`. Use something like `owner@example.com`.
+
+To set a new password (for instance, if you forgot it), run the command below. It asks for the password twice without showing it, and signs the owner out everywhere:
+
+```bash
+docker compose exec backend python -m src.cli reset-password owner@example.com
+# native mode, from backend/ (with DATA_DIR and the ADMIN_* variables set)
+uv run python -m src.cli reset-password owner@example.com
+```
+
+A session lasts 30 days from signing in and is not renewed by use. The session cookie is `HttpOnly` and `SameSite=Lax`, and it has no `Secure` flag because 0.1.0 is served over plain HTTP; that flag will be needed if you put it behind HTTPS.
+
 ## Native mode
 
 Run the backend and the frontend on the host, with the same variable names as in containers. Only `DATA_DIR` changes. Images are not served in this mode, because imgproxy runs only in Docker.
@@ -101,6 +120,8 @@ Run the backend and the frontend on the host, with the same variable names as in
    ```powershell
    cd backend
    $env:DATA_DIR = "./data"   # bash: export DATA_DIR=./data
+   $env:ADMIN_EMAIL = "owner@example.com"      # bash: export ADMIN_EMAIL=...
+   $env:ADMIN_PASSWORD = "choose-a-password"   # bash: export ADMIN_PASSWORD=...
    uv run fastapi dev src/main.py
    ```
 
@@ -118,12 +139,25 @@ Run the backend and the frontend on the host, with the same variable names as in
 | Language / runtime   | Python >= 3.13                                 |
 | Package manager      | [uv](https://docs.astral.sh/uv/)               |
 | Web framework        | [FastAPI](https://fastapi.tiangolo.com/) (`standard` extra, includes Uvicorn) |
-| ORM / database       | [SQLAlchemy](https://www.sqlalchemy.org/) on SQLite (WAL mode, foreign keys on) |
+| Database access      | [SQLAlchemy](https://www.sqlalchemy.org/) Core (plain SQL, no ORM) on SQLite (WAL mode, foreign keys on) |
 | Validation / config  | [Pydantic](https://docs.pydantic.dev/) + [pydantic-settings](https://docs.pydantic.dev/latest/concepts/pydantic_settings/) |
 | Logging              | [loguru](https://github.com/Delgan/loguru)     |
 | Security             | [bcrypt](https://pypi.org/project/bcrypt/) (password hashing) |
 | Environment config   | [python-dotenv](https://pypi.org/project/python-dotenv/) |
 | Lint / format        | [Ruff](https://docs.astral.sh/ruff/) (dev dependency, configured in `pyproject.toml`) |
+
+### Layout
+
+Shared infrastructure sits in `backend/src/`, and each domain is a package under `backend/src/packages/<domain>/` with its own `router`, `service` (the rules), `repository` (the only place with SQL), `schemas`, `responses` and `dependencies`. `src/routes.py` mounts every package router under `/api`.
+
+| Module                  | Role                                                                               |
+| ----------------------- | ---------------------------------------------------------------------------------- |
+| `src/database/`         | Engine, query helpers (`fetch_one`, `fetch_all`, `write`, ...) and the per-request transaction |
+| `src/responses.py`      | `Envelope`: every body is `{"data": ..., "error": null}` or `{"data": null, "error": {...}}` |
+| `src/handlers.py`       | Maps each exception to a status and a stable error `code`; unforeseen failures return a `requestId` that is also in the log |
+| `src/packages/auth/`    | Owner sign-in, sessions and the `current_user` dependency every owner route uses   |
+
+Fields are `snake_case` in Python and `camelCase` in JSON. Services raise the exceptions in `src/exceptions.py`, never `HTTPException`. Each request runs in one transaction that commits before the response is sent, so a service never calls `commit()`.
 
 ### Setup
 
