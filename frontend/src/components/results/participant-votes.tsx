@@ -82,10 +82,8 @@ export function ParticipantVotes({
 									{vote.approved !== null && (
 										<span
 											aria-hidden
-											className={`absolute right-1 bottom-1 grid size-6 place-items-center rounded-full ${
-												vote.approved
-													? "bg-primary text-primary-foreground"
-													: "bg-destructive text-white"
+											className={`absolute right-1 bottom-1 grid size-6 place-items-center rounded-full bg-background/90 ${
+												vote.approved ? "text-primary" : "text-destructive"
 											}`}
 										>
 											{vote.approved ? (

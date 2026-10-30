@@ -12,12 +12,6 @@ import type { PhotoSort } from "@/components/results/results-by-photo";
 import { ShareAlbumDialog } from "@/components/share-album-dialog";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-	Tooltip,
-	TooltipContent,
-	TooltipProvider,
-	TooltipTrigger,
-} from "@/components/ui/tooltip";
 import { UploadPhotosDialog } from "@/components/upload-photos-dialog";
 import {
 	getAlbum,
@@ -49,7 +43,8 @@ function AlbumScreen() {
 
 	const view = search.view ?? "photos";
 	const by: ResultsGrouping = search.by ?? "photo";
-	const sort: PhotoSort = search.sort ?? "upload";
+	// Unset lets the results pick: most liked once there are votes.
+	const sort: PhotoSort | undefined = search.sort;
 
 	// Each change is a new history entry, so back closes the detail and
 	// steps from "Resultados" to "Fotos".
@@ -71,6 +66,10 @@ function AlbumScreen() {
 	const photoCount = photos.data?.length ?? 0;
 	const remainingSlots = MAX_PHOTOS_PER_ALBUM - photoCount;
 	const albumFull = photos.isSuccess && remainingSlots <= 0;
+	// Once there are photos and no link, sharing is the next step, so it takes
+	// the honey and the floating upload button steps down (One Light Rule).
+	const shareIsNext =
+		album.isSuccess && photoCount > 0 && album.data.shareToken === null;
 
 	if (album.isError) {
 		return (
@@ -90,32 +89,48 @@ function AlbumScreen() {
 			<header className="flex flex-col gap-3">
 				<div className="flex items-center justify-between">
 					<BackLink />
-					<TooltipProvider>
-						<Tooltip>
-							<TooltipTrigger asChild>
-								<Button
-									variant="ghost"
-									size="icon"
-									aria-label="Compartir"
-									disabled={album.isPending}
-									onClick={() => setShareOpen(true)}
-								>
-									<Share2 aria-hidden />
-								</Button>
-							</TooltipTrigger>
-							<TooltipContent>Compartir</TooltipContent>
-						</Tooltip>
-					</TooltipProvider>
+					<Button
+						variant={shareIsNext ? "default" : "outline"}
+						disabled={album.isPending}
+						onClick={() => setShareOpen(true)}
+					>
+						<Share2 aria-hidden />
+						Compartir
+					</Button>
 				</div>
 				{album.isPending ? (
 					<Skeleton className="h-8 w-2/3" />
 				) : (
-					<div>
-						<h1 className="text-xl leading-tight font-semibold break-words">
+					<div className="flex flex-col gap-1">
+						<h1 className="text-2xl leading-tight font-semibold tracking-tight break-words">
 							{album.data.title}
 						</h1>
-						<p className="text-sm text-muted-foreground">
-							{photoCount} de {MAX_PHOTOS_PER_ALBUM} fotos
+						<p className="flex flex-wrap items-center gap-x-1.5 text-[0.8125rem] text-muted-foreground">
+							<span>
+								{photoCount} de {MAX_PHOTOS_PER_ALBUM} fotos
+							</span>
+							<span aria-hidden>·</span>
+							{album.data.shareToken ? (
+								<span className="flex items-center gap-1.5">
+									<span
+										aria-hidden
+										className="size-1.5 rounded-full bg-primary"
+									/>
+									Enlace activo
+								</span>
+							) : (
+								<span>Sin enlace</span>
+							)}
+							{album.data.participantCount > 0 && (
+								<>
+									<span aria-hidden>·</span>
+									<span>
+										{album.data.participantCount === 1
+											? "1 persona"
+											: `${album.data.participantCount} personas`}
+									</span>
+								</>
+							)}
 						</p>
 						{albumFull && (
 							<p className="text-[0.8125rem] text-muted-foreground">
@@ -164,7 +179,7 @@ function AlbumScreen() {
 							participant: undefined,
 						})
 					}
-					onSort={(next) => go({ sort: next === "upload" ? undefined : next })}
+					onSort={(next) => go({ sort: next })}
 					onOpenParticipant={(participant) => go({ participant })}
 					onCloseParticipant={() => go({ participant: undefined })}
 					onShare={() => setShareOpen(true)}
@@ -174,6 +189,7 @@ function AlbumScreen() {
 			{view === "photos" && photos.isSuccess && remainingSlots > 0 && (
 				<div className="pointer-events-none fixed inset-x-0 bottom-0 mx-auto flex max-w-md justify-end px-4 pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
 					<Button
+						variant={shareIsNext ? "outline" : "default"}
 						className="pointer-events-auto h-14 gap-2.5 rounded-2xl px-5 text-[0.9375rem] font-bold shadow-lg"
 						onClick={() => setUploadOpen(true)}
 					>
@@ -221,7 +237,7 @@ function TabLink({
 			onClick={onClick}
 			className={`-mb-px flex-1 border-b-[3px] py-3 text-[0.9375rem] font-semibold outline-none focus-visible:ring-3 focus-visible:ring-ring/50 disabled:opacity-50 ${
 				active
-					? "border-primary text-primary"
+					? "border-foreground text-foreground"
 					: "border-transparent text-muted-foreground hover:text-foreground"
 			}`}
 		>
@@ -234,7 +250,7 @@ function BackLink() {
 	return (
 		<Link
 			to="/"
-			className="inline-flex h-8 w-fit items-center gap-1.5 rounded-lg text-sm font-medium text-muted-foreground outline-none hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50"
+			className="inline-flex h-11 w-fit items-center gap-1.5 rounded-lg text-sm font-medium text-muted-foreground outline-none hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50"
 		>
 			<ArrowLeft className="size-4" aria-hidden />
 			Mis álbumes

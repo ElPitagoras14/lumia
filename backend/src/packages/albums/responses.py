@@ -8,7 +8,9 @@ class AlbumResponse(ApiModel):
     title: str
     created_at: str
     photo_count: int
-    cover_url: str | None
+    # Up to three, in upload order. The first is the mosaic's large tile, so
+    # it comes in the deck variant; the rest are thumbnails.
+    cover_urls: list[str]
     share_token: str | None
     participant_count: int
 
@@ -19,9 +21,10 @@ class AlbumResponse(ApiModel):
             title=album.title,
             created_at=album.created_at,
             photo_count=album.photo_count,
-            cover_url=(
-                variant_url(album.cover_key, "thumb") if album.cover_key else None
-            ),
+            cover_urls=[
+                variant_url(key, "deck" if index == 0 else "thumb")
+                for index, key in enumerate(album.cover_keys)
+            ],
             share_token=album.share_token,
             participant_count=album.participant_count,
         )

@@ -198,3 +198,6 @@ todos.json
 
 # Local notes and design drafts, not versioned
 local/
+
+# Impeccable critique snapshots (local run history)
+.impeccable/critique/

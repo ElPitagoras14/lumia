@@ -13,6 +13,12 @@ import {
 	AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogTitle,
+} from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { deletePhoto, type Photo } from "@/lib/api";
 
@@ -24,6 +30,12 @@ interface AlbumPhotosProps {
 export function AlbumPhotos({ albumId, photos }: AlbumPhotosProps) {
 	const queryClient = useQueryClient();
 	const [toDelete, setToDelete] = useState<Photo | null>(null);
+	// The grid is a light table: a photo opens large, and deleting lives
+	// there instead of on every thumbnail, where a scroll could brush it.
+	const [viewing, setViewing] = useState<{
+		photo: Photo;
+		number: number;
+	} | null>(null);
 
 	const remove = useMutation({
 		mutationFn: (photo: Photo) => deletePhoto(albumId, photo.id),
@@ -54,25 +66,60 @@ export function AlbumPhotos({ albumId, photos }: AlbumPhotosProps) {
 			)}
 			<ul className="grid grid-cols-3 gap-2">
 				{photos.data?.map((photo, index) => (
-					<li key={photo.id} className="relative">
-						<img
-							src={photo.urls.thumb}
-							alt={`Foto ${index + 1}`}
-							loading="lazy"
-							className="aspect-square w-full rounded-lg bg-muted object-cover"
-						/>
-						<Button
-							variant="secondary"
-							size="icon"
-							className="absolute top-1 right-1 bg-background/80"
-							aria-label={`Borrar la foto ${index + 1}`}
-							onClick={() => setToDelete(photo)}
+					<li key={photo.id}>
+						<button
+							type="button"
+							aria-label={`Ver la foto ${index + 1}`}
+							onClick={() => setViewing({ photo, number: index + 1 })}
+							className="block w-full rounded-lg outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
 						>
-							<Trash2 aria-hidden />
-						</Button>
+							<img
+								src={photo.urls.thumb}
+								alt=""
+								loading="lazy"
+								className="aspect-square w-full rounded-lg bg-muted object-cover"
+							/>
+						</button>
 					</li>
 				))}
 			</ul>
+
+			<Dialog
+				open={viewing !== null}
+				onOpenChange={(open) => {
+					if (!open) setViewing(null);
+				}}
+			>
+				<DialogContent className="gap-3 p-3">
+					{viewing && (
+						<>
+							<img
+								src={viewing.photo.urls.viewer}
+								alt={`Foto ${viewing.number}`}
+								className="max-h-[70svh] w-full rounded-lg bg-muted object-contain"
+							/>
+							<div className="flex items-center justify-between gap-3 px-1 pb-1">
+								<div className="flex flex-col gap-0.5">
+									<DialogTitle>Foto {viewing.number}</DialogTitle>
+									<DialogDescription>
+										Sus votos están en Resultados.
+									</DialogDescription>
+								</div>
+								<Button
+									variant="destructive"
+									onClick={() => {
+										setToDelete(viewing.photo);
+										setViewing(null);
+									}}
+								>
+									<Trash2 aria-hidden />
+									Borrar
+								</Button>
+							</div>
+						</>
+					)}
+				</DialogContent>
+			</Dialog>
 
 			<AlertDialog
 				open={toDelete !== null}
@@ -87,7 +134,7 @@ export function AlbumPhotos({ albumId, photos }: AlbumPhotosProps) {
 					<AlertDialogHeader>
 						<AlertDialogTitle>¿Borrar esta foto?</AlertDialogTitle>
 						<AlertDialogDescription>
-							Se borrará también el voto que haya recibido. No se puede
+							Se borrarán también los votos que haya recibido. No se puede
 							deshacer.
 						</AlertDialogDescription>
 					</AlertDialogHeader>

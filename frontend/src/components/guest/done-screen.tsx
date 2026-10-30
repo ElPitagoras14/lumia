@@ -1,5 +1,9 @@
-import { Heart, Sun, X } from "lucide-react";
+import { Heart, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import type { GuestPhoto } from "@/lib/api";
+
+// The closing mosaic shows at most this many of the photos the guest liked.
+const MAX_LIKED_SHOWN = 6;
 
 interface DoneScreenProps {
 	name: string;
@@ -7,6 +11,7 @@ interface DoneScreenProps {
 	total: number;
 	liked: number;
 	disliked: number;
+	likedPhotos: GuestPhoto[];
 	onReview: () => void;
 }
 
@@ -16,45 +21,75 @@ export function DoneScreen({
 	total,
 	liked,
 	disliked,
+	likedPhotos,
 	onReview,
 }: DoneScreenProps) {
+	const shown = likedPhotos.slice(0, MAX_LIKED_SHOWN);
+	const more = likedPhotos.length - shown.length;
+
 	return (
-		<main className="mx-auto flex min-h-svh max-w-md flex-col justify-center gap-8 px-6 py-10">
-			<div className="grid size-12 place-items-center rounded-xl bg-primary text-primary-foreground">
-				<Sun className="size-6" aria-hidden />
-			</div>
+		<main className="mx-auto flex min-h-svh max-w-md flex-col gap-8 px-6 pt-4 pb-10">
+			<header className="flex h-11 items-center">
+				<p className="font-semibold tracking-tight">Lumia</p>
+			</header>
+
 			<div className="flex flex-col gap-2">
-				<h1 className="text-2xl leading-tight font-semibold break-words">
+				<h1 className="text-2xl leading-tight font-bold tracking-tight break-words">
 					¡Listo, {name}!
 				</h1>
 				<p className="text-base text-muted-foreground">
 					{total === 1
 						? "Calificaste la foto de "
 						: `Calificaste las ${total} fotos de `}
-					{title}.
+					{title}. Tus votos ya le llegaron a quien creó el álbum.
 				</p>
 			</div>
-			<div className="grid grid-cols-2 gap-3">
-				<div className="flex flex-col gap-1 rounded-xl border p-4">
-					<span className="flex items-center gap-2 text-2xl font-semibold">
-						<Heart className="size-5 text-primary" aria-hidden />
-						{liked}
-					</span>
-					<span className="text-[0.8125rem] text-muted-foreground">
-						me gustan
-					</span>
-				</div>
-				<div className="flex flex-col gap-1 rounded-xl border p-4">
-					<span className="flex items-center gap-2 text-2xl font-semibold">
-						<X className="size-5 text-destructive" aria-hidden />
-						{disliked}
-					</span>
-					<span className="text-[0.8125rem] text-muted-foreground">
-						no me gustan
-					</span>
-				</div>
-			</div>
-			<div className="flex flex-col gap-3">
+
+			{/* The payoff: what the guest picked, back on the table. */}
+			{shown.length > 0 && (
+				<section
+					className="flex flex-col gap-2.5"
+					aria-labelledby="liked-title"
+				>
+					<h2 id="liked-title" className="text-base font-semibold">
+						Te gustaron
+					</h2>
+					<ul className="grid grid-cols-3 gap-1.5">
+						{shown.map((photo) => (
+							<li key={photo.id}>
+								<img
+									src={photo.urls.thumb}
+									alt=""
+									className="aspect-square w-full rounded-lg bg-muted object-cover"
+								/>
+							</li>
+						))}
+					</ul>
+					{more > 0 && (
+						<p className="text-[0.8125rem] text-muted-foreground">
+							{more === 1 ? "Y 1 más." : `Y ${more} más.`}
+						</p>
+					)}
+				</section>
+			)}
+
+			<p className="flex items-center gap-3 text-sm tabular-nums">
+				<span className="flex items-center gap-1.5">
+					<Heart className="size-4 text-primary" aria-hidden />
+					<strong className="font-semibold">{liked}</strong>
+					{liked === 1 ? "me gusta" : "me gustan"}
+				</span>
+				<span aria-hidden className="text-muted-foreground">
+					·
+				</span>
+				<span className="flex items-center gap-1.5">
+					<X className="size-4 text-destructive" aria-hidden />
+					<strong className="font-semibold">{disliked}</strong>
+					{disliked === 1 ? "no me gusta" : "no me gustan"}
+				</span>
+			</p>
+
+			<div className="mt-auto flex flex-col gap-3">
 				<Button size="lg" onClick={onReview}>
 					Revisar mis votos
 				</Button>

@@ -11,8 +11,9 @@ _ALBUM_COLUMNS = """
     a.title,
     a.created_at,
     (SELECT COUNT(*) FROM photos p WHERE p.album_id = a.id) AS photo_count,
-    (SELECT p.storage_key FROM photos p WHERE p.album_id = a.id
-        ORDER BY p.id LIMIT 1) AS cover_key,
+    (SELECT json_group_array(c.storage_key) FROM (
+        SELECT p.storage_key FROM photos p WHERE p.album_id = a.id
+        ORDER BY p.id LIMIT 3) c) AS cover_keys,
     (SELECT s.token FROM share_tokens s WHERE s.album_id = a.id) AS share_token,
     (SELECT COUNT(*) FROM participants pa WHERE pa.album_id = a.id)
         AS participant_count

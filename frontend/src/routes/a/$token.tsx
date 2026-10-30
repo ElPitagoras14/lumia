@@ -1,6 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { Images } from "lucide-react";
 import { type FormEvent, useState } from "react";
 import { z } from "zod";
 import { DoneScreen } from "@/components/guest/done-screen";
@@ -60,17 +59,26 @@ function GuestAlbum() {
 		return (
 			<Shell>
 				<div className="flex flex-col gap-2">
-					<h1 className="text-xl leading-tight font-semibold">
+					<h1 className="text-2xl leading-tight font-bold tracking-tight">
 						{isApiError(shared.error, "not_found")
 							? "Este enlace no es válido"
 							: "No se pudo abrir el álbum"}
 					</h1>
-					<p role="alert" className="text-sm text-muted-foreground">
+					<p role="alert" className="text-base text-muted-foreground">
 						{isApiError(shared.error, "not_found")
 							? "Puede que haya dejado de funcionar. Pide un enlace nuevo a quien te lo compartió."
-							: "Inténtalo de nuevo en un momento."}
+							: "Revisa tu conexión e inténtalo de nuevo."}
 					</p>
 				</div>
+				{!isApiError(shared.error, "not_found") && (
+					<Button
+						variant="outline"
+						disabled={shared.isFetching}
+						onClick={() => void shared.refetch()}
+					>
+						Reintentar
+					</Button>
+				)}
 			</Shell>
 		);
 	}
@@ -198,6 +206,7 @@ function Voting({
 				total={counts.all}
 				liked={counts.liked}
 				disliked={counts.disliked}
+				likedPhotos={photos.filter((photo) => photo.approved === true)}
 				onReview={() => go({ view: "votes" })}
 			/>
 		);
@@ -246,13 +255,13 @@ function AskName({
 	return (
 		<form onSubmit={submit} className="flex flex-col gap-6">
 			<div className="flex flex-col gap-2">
-				<p className="text-sm text-muted-foreground">Te invitaron a votar</p>
-				<h1 className="text-xl leading-tight font-semibold break-words">
+				<h1 className="text-2xl leading-tight font-bold tracking-tight break-words">
 					{title}
 				</h1>
-				<p className="text-base">
-					{photoCount === 1 ? "1 foto." : `${photoCount} fotos.`} Desliza a la
-					derecha las que te gusten y a la izquierda las que no.
+				<p className="text-base text-muted-foreground">
+					Te invitaron a votar{" "}
+					{photoCount === 1 ? "su foto" : `sus ${photoCount} fotos`}. Desliza a
+					la derecha las que te gusten y a la izquierda las que no.
 				</p>
 			</div>
 			<div className="flex flex-col gap-2">
@@ -290,10 +299,12 @@ function AskName({
 
 function Shell({ children }: { children: React.ReactNode }) {
 	return (
-		<main className="mx-auto flex min-h-svh max-w-md flex-col gap-8 px-6 pt-12 pb-10">
-			<div className="grid size-12 place-items-center rounded-xl bg-primary text-primary-foreground">
-				<Images className="size-6" aria-hidden />
-			</div>
+		<main className="mx-auto flex min-h-svh max-w-md flex-col gap-8 px-6 pt-4 pb-10">
+			{/* Same wordmark as the owner's header, so a guest knows where they
+			    are even on a dead link. */}
+			<header className="flex h-11 items-center">
+				<p className="font-semibold tracking-tight">Lumia</p>
+			</header>
 			{children}
 		</main>
 	);
