@@ -1,5 +1,11 @@
+from src.images import variant_url
 from src.models import ApiModel
-from src.packages.sharing.schemas import ParticipantRecord, SharedAlbumRecord
+from src.packages.photos.responses import PhotoUrls
+from src.packages.sharing.schemas import (
+    GuestPhotoRecord,
+    ParticipantRecord,
+    SharedAlbumRecord,
+)
 
 
 class ParticipantResponse(ApiModel):
@@ -30,4 +36,25 @@ class SharedAlbumResponse(ApiModel):
             participant=(
                 ParticipantResponse.from_record(participant) if participant else None
             ),
+        )
+
+
+class GuestPhotoResponse(ApiModel):
+    """Less than the owner's `PhotoResponse` on purpose: no size and no
+    timestamps. `approved` is `None` while the photo is pending."""
+
+    id: int
+    urls: PhotoUrls
+    approved: bool | None
+
+    @classmethod
+    def from_record(cls, photo: GuestPhotoRecord) -> "GuestPhotoResponse":
+        return cls(
+            id=photo.id,
+            urls=PhotoUrls(
+                thumb=variant_url(photo.storage_key, "thumb"),
+                deck=variant_url(photo.storage_key, "deck"),
+                viewer=variant_url(photo.storage_key, "viewer"),
+            ),
+            approved=photo.approved,
         )

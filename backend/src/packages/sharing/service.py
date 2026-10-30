@@ -8,7 +8,11 @@ from src.packages.albums.schemas import AlbumRecord
 from src.packages.auth.security import generate_session_secret, hash_session_secret
 from src.packages.sharing import repository
 from src.packages.sharing.config import SHARE_TOKEN_BYTES
-from src.packages.sharing.schemas import ParticipantRecord, SharedAlbumRecord
+from src.packages.sharing.schemas import (
+    GuestPhotoRecord,
+    ParticipantRecord,
+    SharedAlbumRecord,
+)
 
 
 def generate_share_link(
@@ -55,3 +59,26 @@ def join(
         connection, album.id, name, hash_session_secret(new_secret)
     )
     return participant, new_secret
+
+
+def list_photos(
+    connection: Connection, album_id: int, participant_id: int
+) -> list[GuestPhotoRecord]:
+    return repository.list_guest_photos(connection, album_id, participant_id)
+
+
+def rate_photo(
+    connection: Connection,
+    album_id: int,
+    participant_id: int,
+    photo_id: int,
+    approved: bool,
+) -> GuestPhotoRecord:
+    """A photo that does not exist and one of another album are the same
+    `NotFoundError`: nothing was written."""
+    photo = repository.upsert_rating(
+        connection, album_id, participant_id, photo_id, approved
+    )
+    if photo is None:
+        raise NotFoundError()
+    return photo

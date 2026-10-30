@@ -94,6 +94,14 @@ export interface SharedAlbum {
 	participant: { name: string } | null;
 }
 
+// What a guest sees of a photo: its variants and their own vote, `null`
+// while the photo is pending. Nothing about other participants.
+export interface GuestPhoto {
+	id: number;
+	urls: { thumb: string; deck: string; viewer: string };
+	approved: boolean | null;
+}
+
 export interface Photo {
 	id: number;
 	sizeBytes: number;
@@ -159,4 +167,16 @@ export const joinSharedAlbum = (token: string, name: string) =>
 		method: "post",
 		url: `/share/${token}/participants`,
 		data: { name },
+	});
+
+export const getGuestPhotos = (token: string) =>
+	request<GuestPhoto[]>({ method: "get", url: `/share/${token}/photos` });
+
+// A vote replaces the previous one for that photo; there is no way back to
+// pending.
+export const ratePhoto = (token: string, photoId: number, approved: boolean) =>
+	request<GuestPhoto>({
+		method: "put",
+		url: `/share/${token}/photos/${photoId}/rating`,
+		data: { approved },
 	});
