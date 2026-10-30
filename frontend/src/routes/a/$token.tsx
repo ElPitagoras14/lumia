@@ -303,7 +303,9 @@ function Shell({ children }: { children: React.ReactNode }) {
 			{/* Same wordmark as the owner's header, so a guest knows where they
 			    are even on a dead link. */}
 			<header className="flex h-11 items-center">
-				<p className="font-semibold tracking-tight">Lumia</p>
+				<p translate="no" className="font-semibold tracking-tight">
+					Lumia
+				</p>
 			</header>
 			{children}
 		</main>

@@ -66,7 +66,7 @@ function Home() {
 		<main className="mx-auto flex min-h-svh max-w-md flex-col gap-4 px-4 pt-4 pb-28">
 			<header className="flex items-center justify-between gap-3">
 				<p className="min-w-0 truncate font-semibold tracking-tight">
-					Lumia
+					<span translate="no">Lumia</span>
 					<span className="sr-only">, sesión de {user.email}</span>
 				</p>
 				<Button

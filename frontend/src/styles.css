@@ -139,5 +139,13 @@ body {
   }
   html {
     @apply font-sans;
+    /* No double-tap zoom delay on taps; the deck card narrows it to pan-y. */
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
   }
 }

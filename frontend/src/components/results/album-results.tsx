@@ -21,6 +21,9 @@ interface AlbumResultsProps {
 	onShare: () => void;
 }
 
+// "64 %", with the non-breaking space Spanish puts before the sign.
+const percentFormat = new Intl.NumberFormat("es", { style: "percent" });
+
 const GROUPINGS: { value: ResultsGrouping; label: string }[] = [
 	{ value: "photo", label: "Por foto" },
 	{ value: "person", label: "Por persona" },
@@ -77,10 +80,9 @@ export function AlbumResults({
 		);
 	}
 
-	const percent =
-		summary.possibleVotes > 0
-			? Math.round((summary.voteCount / summary.possibleVotes) * 100)
-			: 0;
+	const percent = percentFormat.format(
+		summary.possibleVotes > 0 ? summary.voteCount / summary.possibleVotes : 0,
+	);
 
 	return (
 		<div className="flex flex-col gap-4">
@@ -93,7 +95,7 @@ export function AlbumResults({
 				<strong className="font-semibold text-foreground">
 					{summary.voteCount}
 				</strong>{" "}
-				de {summary.possibleVotes} votos · {percent} % completado
+				de {summary.possibleVotes} votos · {percent} completado
 			</p>
 
 			<fieldset

@@ -48,7 +48,7 @@ export function ParticipantVotes({
 						{participant?.ratedCount} de {photoCount} fotos calificadas
 					</DrawerDescription>
 				</DrawerHeader>
-				<div className="mx-auto max-h-[60svh] w-full max-w-md overflow-y-auto px-4 pb-6">
+				<div className="mx-auto max-h-[60svh] w-full max-w-md overflow-y-auto overscroll-contain px-4 pb-6">
 					{votes.isPending && (
 						<div className="grid grid-cols-3 gap-2">
 							{["a", "b", "c"].map((id) => (

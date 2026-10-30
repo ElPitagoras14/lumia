@@ -192,7 +192,7 @@ export function ResultsByPhoto({
 							<img
 								src={open.photo.deckUrl}
 								alt={`Foto ${open.number}`}
-								className="max-h-[70svh] w-full rounded-lg bg-muted object-contain"
+								className="aspect-[4/3] max-h-[70svh] w-full rounded-lg bg-muted object-contain"
 							/>
 							<div className="flex flex-col gap-1 px-1 pb-1">
 								<DialogTitle>Foto {open.number}</DialogTitle>
@@ -245,7 +245,7 @@ function TallyRow({
 			<span className="flex min-w-0 flex-1 flex-col gap-1.5">
 				<span className="flex items-center justify-between gap-2">
 					<strong className="text-sm">Foto {number}</strong>
-					<span className="flex items-center gap-3 text-sm">
+					<span className="flex items-center gap-3 text-sm tabular-nums">
 						<span className="flex items-center gap-1 text-primary">
 							<Heart className="size-3.5" aria-hidden />
 							{photo.approvedCount}
