@@ -2,10 +2,13 @@
 # workflow publishes, never a local build. Dokploy keeps its own copy of this
 # file, so a change here must be pasted into the Dokploy compose as well.
 #
-# Only nginx is routed: Dokploy's domain points at service `nginx`, port 80.
-# Every other service is reachable only through it.
+# Only nginx is routed: Dokploy's domain points at service `lumia-nginx`,
+# port 80. Every other service is reachable only through it. Service names
+# carry the `lumia-` prefix because Dokploy also attaches lumia-nginx to the
+# shared dokploy-network, where a generic name like `frontend` resolves to
+# other stacks' containers too.
 services:
-  nginx:
+  lumia-nginx:
     image: ghcr.io/elpitagoras14/lumia-nginx:latest
     pull_policy: always
     restart: unless-stopped
@@ -14,14 +17,14 @@ services:
     volumes:
       - nginx-cache:/var/cache/nginx
 
-  frontend:
+  lumia-frontend:
     image: ghcr.io/elpitagoras14/lumia-web:latest
     pull_policy: always
     restart: unless-stopped
 
   # Applies pending migrations and exits. The migrations are baked into the
   # image, so nothing is mounted over /db.
-  migrate:
+  lumia-migrate:
     image: ghcr.io/elpitagoras14/lumia-migrate:latest
     pull_policy: always
     restart: "no"
@@ -31,7 +34,7 @@ services:
     volumes:
       - lumia-data:/data
 
-  backend:
+  lumia-backend:
     image: ghcr.io/elpitagoras14/lumia-api:latest
     pull_policy: always
     restart: unless-stopped
@@ -43,11 +46,11 @@ services:
       ADMIN_PASSWORD: ${ADMIN_PASSWORD}
       IMAGE_SIGNING_KEY: ${IMAGE_SIGNING_KEY}
       IMAGE_SIGNING_SALT: ${IMAGE_SIGNING_SALT}
-      IMAGE_WARMUP_BASE_URL: http://nginx
+      IMAGE_WARMUP_BASE_URL: http://lumia-nginx
     volumes:
       - lumia-data:/data
     depends_on:
-      migrate:
+      lumia-migrate:
         condition: service_completed_successfully
     healthcheck:
       test:
@@ -60,7 +63,7 @@ services:
       retries: 5
       start_period: 5s
 
-  transformer:
+  lumia-transformer:
     image: darthsim/imgproxy:v4.0.14
     restart: unless-stopped
     environment:

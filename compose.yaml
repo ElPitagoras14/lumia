@@ -1,7 +1,7 @@
 # The whole local environment. Only nginx publishes a port; every other
 # service is reachable only through it, on the `lumia` network.
 services:
-  nginx:
+  lumia-nginx:
     build: ./nginx
     restart: unless-stopped
     ports:
@@ -11,7 +11,7 @@ services:
     networks:
       - lumia
 
-  frontend:
+  lumia-frontend:
     build: ./frontend
     restart: unless-stopped
     networks:
@@ -19,7 +19,7 @@ services:
 
   # Applies pending migrations and exits. The migrations are baked into the
   # image, so nothing is mounted over /db.
-  migrate:
+  lumia-migrate:
     build: ./dbmate
     restart: "no"
     command: ["--no-dump-schema", "up"]
@@ -30,7 +30,7 @@ services:
     networks:
       - lumia
 
-  backend:
+  lumia-backend:
     build: ./backend
     restart: unless-stopped
     environment:
@@ -43,11 +43,11 @@ services:
       # pair.
       IMAGE_SIGNING_KEY: ${IMAGE_SIGNING_KEY}
       IMAGE_SIGNING_SALT: ${IMAGE_SIGNING_SALT}
-      IMAGE_WARMUP_BASE_URL: http://nginx
+      IMAGE_WARMUP_BASE_URL: http://lumia-nginx
     volumes:
       - lumia-data:/data
     depends_on:
-      migrate:
+      lumia-migrate:
         condition: service_completed_successfully
     healthcheck:
       test:
@@ -62,7 +62,7 @@ services:
     networks:
       - lumia
 
-  transformer:
+  lumia-transformer:
     image: darthsim/imgproxy:v4.0.14
     restart: unless-stopped
     environment:

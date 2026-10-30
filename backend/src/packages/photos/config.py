@@ -20,7 +20,7 @@ class PhotoSettings(BaseSettings):
     # Where the upload's thumbnail is requested from to fill nginx's cache.
     # The default only resolves inside the compose network; natively the
     # warm-up just fails, which is harmless.
-    image_warmup_base_url: str = "http://nginx"
+    image_warmup_base_url: str = "http://lumia-nginx"
 
 
 photo_settings = PhotoSettings()
