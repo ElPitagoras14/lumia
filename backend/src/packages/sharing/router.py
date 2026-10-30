@@ -12,8 +12,13 @@ from src.packages.sharing.config import (
     PARTICIPANT_COOKIE_PATH,
     participant_cookie_name,
 )
-from src.packages.sharing.responses import ParticipantResponse, SharedAlbumResponse
-from src.packages.sharing.schemas import JoinRequest
+from src.packages.sharing.dependencies import CurrentGuest
+from src.packages.sharing.responses import (
+    GuestPhotoResponse,
+    ParticipantResponse,
+    SharedAlbumResponse,
+)
+from src.packages.sharing.schemas import JoinRequest, RateRequest
 from src.responses import Envelope
 
 Owner = Annotated[UserRecord, Depends(current_user)]
@@ -72,3 +77,22 @@ def join_shared_album(
             path=PARTICIPANT_COOKIE_PATH,
         )
     return Envelope(data=ParticipantResponse.from_record(participant))
+
+
+@guest_router.get("/photos")
+def list_guest_photos(
+    guest: CurrentGuest, connection: DbConnection
+) -> Envelope[list[GuestPhotoResponse]]:
+    photos = service.list_photos(connection, guest.album.id, guest.participant.id)
+    return Envelope(data=[GuestPhotoResponse.from_record(p) for p in photos])
+
+
+# A write, so only an explicit PUT with a JSON body reaches it.
+@guest_router.put("/photos/{photo_id}/rating")
+def rate_guest_photo(
+    photo_id: int, body: RateRequest, guest: CurrentGuest, connection: DbConnection
+) -> Envelope[GuestPhotoResponse]:
+    photo = service.rate_photo(
+        connection, guest.album.id, guest.participant.id, photo_id, body.approved
+    )
+    return Envelope(data=GuestPhotoResponse.from_record(photo))

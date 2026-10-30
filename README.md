@@ -74,6 +74,21 @@ Guests need no account. Opening the link asks for a name (1 to 50 characters) an
 - A browser without the cookie is always a new participant, even with the same name; progress is never recovered by name.
 - The copy button needs a secure context (`localhost` or HTTPS); over plain HTTP on another address the link is selected so it can be copied by hand.
 
+## Voting
+
+After entering a name, a guest goes through the album one photo at a time, in upload order. Swiping a card right (or pressing **Me gusta**, or the right arrow key) votes in favour; swiping left (or **No me gusta**, or the left arrow key) votes against. A short drag puts the card back without voting, and tapping a card opens it full size.
+
+- Every vote is saved on the server, so progress survives closing the browser: coming back resumes at the first unrated photo. Photos the owner uploads later show up as pending.
+- **Mis votos** lists the whole album with each photo's state, filters by liked, disliked and pending, and opens a viewer where a vote can be changed. A new vote replaces the old one; there is no way back to pending.
+- When nothing is left pending, the guest sees a summary with the totals instead of the deck.
+
+The guest API lives under `/api/share/{token}`, authenticated by the participant cookie (`401` without it, `404` for an unknown or revoked token):
+
+| Endpoint | Purpose |
+| --- | --- |
+| `GET /photos` | The album's photos with signed variant URLs and the caller's own vote (`approved`: `true`, `false` or `null` while pending) |
+| `PUT /photos/{photo_id}/rating` | Votes a photo with a JSON body `{"approved": true}`; a photo of another album answers `404` |
+
 No new environment variables.
 
 ## Migrations

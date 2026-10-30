@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from pydantic import BaseModel, StringConstraints
+from pydantic import BaseModel, StrictBool, StringConstraints
 
 from src.models import ApiModel
 
@@ -21,3 +21,15 @@ class JoinRequest(ApiModel):
     name: Annotated[
         str, StringConstraints(strip_whitespace=True, min_length=1, max_length=50)
     ]
+
+
+class GuestPhotoRecord(BaseModel):
+    id: int
+    storage_key: str
+    # None while the participant has not voted the photo.
+    approved: bool | None
+
+
+class RateRequest(ApiModel):
+    # Strict: the default coercion would accept "true", 1 or "yes" as a vote.
+    approved: StrictBool
