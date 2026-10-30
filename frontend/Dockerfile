@@ -1,5 +1,7 @@
 # --- build ---
-FROM node:22.23.2-slim AS build
+# The output is static files, so the build runs natively on the builder's
+# platform even for an arm64 image, instead of under QEMU emulation.
+FROM --platform=$BUILDPLATFORM node:22.23.2-slim AS build
 
 WORKDIR /app
 

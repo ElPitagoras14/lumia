@@ -12,7 +12,9 @@ lumia/
 ├── dbmate/      # SQL migrations and the image that applies them
 ├── frontend/    # React SPA with TanStack Router/Query and Vite
 ├── nginx/       # Entry point: routes /api, /images and the SPA
+├── .github/     # Release workflow (images, tag, release, Dokploy deploy)
 ├── compose.yaml
+├── compose.prod.yaml  # Dokploy stack, prebuilt images
 └── VERSION      # Project version
 ```
 
@@ -120,6 +122,34 @@ docker compose run --rm migrate        # migrate without starting the API
 ```
 
 dbmate is pinned to `ghcr.io/amacneil/dbmate:2.35.1` in `dbmate/Dockerfile`, `backend/tests/migrate.py` and this README; change all three together (`grep -rn "amacneil/dbmate"`).
+
+## Release and deployment
+
+Production runs on [Dokploy](https://docs.dokploy.com/) as a raw compose project whose content is [`compose.prod.yaml`](./compose.prod.yaml): the same stack as `compose.yaml`, but pulling prebuilt images instead of building them. Dokploy keeps its own copy of that file, so a change to it must be pasted into the Dokploy compose too. The domain, `lumia.elpitagoras14.qzz.io`, points at the `nginx` service, port 80.
+
+A push to `main` runs [`.github/workflows/release.yml`](./.github/workflows/release.yml), which publishes only when `VERSION` is higher than the highest `v*` tag (a lower one fails the run; an equal one skips it):
+
+1. **check-version** reads `VERSION` and compares it with the tags.
+2. **build** builds the four images in a matrix, for `linux/amd64` and `linux/arm64`, and pushes them as `:candidate-<sha>`.
+3. **tag** tags every image `:<version>` and then `:latest`, and creates the git tag `v<version>` on the built commit.
+4. **release** creates the GitHub release with generated notes.
+5. **deploy** calls Dokploy's `compose.deploy`, which pulls `:latest` and recreates the stack.
+
+| Image                                | Source      |
+| ------------------------------------ | ----------- |
+| `ghcr.io/elpitagoras14/lumia-api`     | `backend/`  |
+| `ghcr.io/elpitagoras14/lumia-web`     | `frontend/` |
+| `ghcr.io/elpitagoras14/lumia-migrate` | `dbmate/`   |
+| `ghcr.io/elpitagoras14/lumia-nginx`   | `nginx/`    |
+
+The workflow needs these in the repository settings:
+
+| Name                 | Kind     | Description                                  |
+| -------------------- | -------- | -------------------------------------------- |
+| `DOKPLOY_API_KEY`    | Secret   | Dokploy API key used by the deploy job       |
+| `DOKPLOY_COMPOSE_ID` | Variable | ID of the Lumia compose in Dokploy           |
+
+The Dokploy compose sets `IMAGE_SIGNING_KEY`, `IMAGE_SIGNING_SALT`, `ADMIN_EMAIL` and `ADMIN_PASSWORD` in its environment; `HTTP_PORT` and `DATA_DIR` are not used there.
 
 ## Data model
 

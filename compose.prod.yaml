@@ -1,0 +1,84 @@
+# Production stack for Dokploy (raw compose): the images the release
+# workflow publishes, never a local build. Dokploy keeps its own copy of this
+# file, so a change here must be pasted into the Dokploy compose as well.
+#
+# Only nginx is routed: Dokploy's domain points at service `nginx`, port 80.
+# Every other service is reachable only through it.
+services:
+  nginx:
+    image: ghcr.io/elpitagoras14/lumia-nginx:latest
+    pull_policy: always
+    restart: unless-stopped
+    expose:
+      - "80"
+    volumes:
+      - nginx-cache:/var/cache/nginx
+
+  frontend:
+    image: ghcr.io/elpitagoras14/lumia-web:latest
+    pull_policy: always
+    restart: unless-stopped
+
+  # Applies pending migrations and exits. The migrations are baked into the
+  # image, so nothing is mounted over /db.
+  migrate:
+    image: ghcr.io/elpitagoras14/lumia-migrate:latest
+    pull_policy: always
+    restart: "no"
+    command: ["--no-dump-schema", "up"]
+    environment:
+      DATABASE_URL: sqlite:/data/lumia.db
+    volumes:
+      - lumia-data:/data
+
+  backend:
+    image: ghcr.io/elpitagoras14/lumia-api:latest
+    pull_policy: always
+    restart: unless-stopped
+    environment:
+      DATA_DIR: /data
+      # Only the first start uses them (to create the owner), but without
+      # them the backend does not start.
+      ADMIN_EMAIL: ${ADMIN_EMAIL}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+      IMAGE_SIGNING_KEY: ${IMAGE_SIGNING_KEY}
+      IMAGE_SIGNING_SALT: ${IMAGE_SIGNING_SALT}
+      IMAGE_WARMUP_BASE_URL: http://nginx
+    volumes:
+      - lumia-data:/data
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health')"
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+
+  transformer:
+    image: darthsim/imgproxy:v4.0.14
+    restart: unless-stopped
+    environment:
+      IMGPROXY_KEY: ${IMAGE_SIGNING_KEY}
+      IMGPROXY_SALT: ${IMAGE_SIGNING_SALT}
+      IMGPROXY_PATH_PREFIX: /images
+      IMGPROXY_LOCAL_FILESYSTEM_ROOT: /data
+      # Only originals under /data/photos; never remote URLs, even signed.
+      IMGPROXY_ALLOWED_SOURCES: local:///photos/
+      IMGPROXY_MAX_SRC_FILE_SIZE: "20971520"
+    volumes:
+      - lumia-data:/data:ro
+    healthcheck:
+      test: ["CMD", "imgproxy", "health"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+volumes:
+  lumia-data:
+  nginx-cache:
