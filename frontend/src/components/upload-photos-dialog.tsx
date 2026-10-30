@@ -57,7 +57,7 @@ function uploadErrorText(error: unknown): string {
 		return `El álbum ya tiene el máximo de ${MAX_PHOTOS_PER_ALBUM} fotos.`;
 	}
 	if (isApiError(error, "validation_failed")) {
-		return "Solo se aceptan imágenes JPEG, PNG o WebP de hasta 20 MiB.";
+		return "Solo se aceptan imágenes JPEG, PNG o WebP de hasta 20 MB.";
 	}
 	if (isApiError(error, "not_found")) {
 		return "El álbum ya no existe.";
@@ -65,8 +65,13 @@ function uploadErrorText(error: unknown): string {
 	return "No se pudo subir. Inténtalo de nuevo.";
 }
 
+const sizeFormat = new Intl.NumberFormat("es", {
+	minimumFractionDigits: 1,
+	maximumFractionDigits: 1,
+});
+
 function formatSize(bytes: number): string {
-	return `${(bytes / (1024 * 1024)).toFixed(1)} MiB`;
+	return `${sizeFormat.format(bytes / (1024 * 1024))} MB`;
 }
 
 export function UploadPhotosDialog({
@@ -144,7 +149,7 @@ export function UploadPhotosDialog({
 				};
 			}
 			if (file.size > MAX_PHOTO_BYTES) {
-				return { ...base, state: "invalid", error: "Pesa más de 20 MiB." };
+				return { ...base, state: "invalid", error: "Pesa más de 20 MB." };
 			}
 			if (slots <= 0) {
 				return {
@@ -230,7 +235,7 @@ export function UploadPhotosDialog({
 	// a bottom drawer, which the thumb reaches and a swipe down closes.
 	const isDesktop = useMediaQuery("(min-width: 768px)");
 
-	const description = `JPEG, PNG o WebP, hasta 20 MiB cada una. Caben ${Math.max(slotsLeft, 0)} más en este álbum.`;
+	const description = `JPEG, PNG o WebP, hasta 20 MB cada una. Caben ${Math.max(slotsLeft, 0)} más en este álbum.`;
 
 	const picker = (
 		<>
@@ -285,7 +290,7 @@ export function UploadPhotosDialog({
 		// data-vaul-no-drag: scrolling the list must not drag the drawer down.
 		<ul
 			data-vaul-no-drag
-			className="flex max-h-[40svh] flex-col gap-2 overflow-y-auto"
+			className="flex max-h-[40svh] flex-col gap-2 overflow-y-auto overscroll-contain"
 			aria-live="polite"
 		>
 			{items.map((item) => (
@@ -356,7 +361,7 @@ export function UploadPhotosDialog({
 					<DrawerTitle>Subir fotos</DrawerTitle>
 					<DrawerDescription>{description}</DrawerDescription>
 				</DrawerHeader>
-				<div className="flex min-h-0 flex-col gap-3 overflow-y-auto px-4">
+				<div className="flex min-h-0 flex-col gap-3 overflow-y-auto overscroll-contain px-4">
 					{picker}
 					{list}
 				</div>

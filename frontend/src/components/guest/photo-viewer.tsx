@@ -65,9 +65,10 @@ export function PhotoViewer({
 				>
 					<X aria-hidden />
 				</Button>
-				<span className="text-sm font-medium" aria-live="polite">
+				<h1 className="text-sm font-medium tabular-nums" aria-live="polite">
+					<span className="sr-only">Foto </span>
 					{index + 1} / {photos.length}
-				</span>
+				</h1>
 				<span className="size-11" aria-hidden />
 			</header>
 

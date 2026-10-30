@@ -96,7 +96,7 @@ export function AlbumPhotos({ albumId, photos }: AlbumPhotosProps) {
 							<img
 								src={viewing.photo.urls.viewer}
 								alt={`Foto ${viewing.number}`}
-								className="max-h-[70svh] w-full rounded-lg bg-muted object-contain"
+								className="aspect-[4/3] max-h-[70svh] w-full rounded-lg bg-muted object-contain"
 							/>
 							<div className="flex items-center justify-between gap-3 px-1 pb-1">
 								<div className="flex flex-col gap-0.5">

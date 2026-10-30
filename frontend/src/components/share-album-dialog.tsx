@@ -190,7 +190,7 @@ export function ShareAlbumDialog({
 							<DrawerTitle>Compartir álbum</DrawerTitle>
 							<DrawerDescription>{description}</DrawerDescription>
 						</DrawerHeader>
-						<div className="flex min-h-0 flex-col gap-3 overflow-y-auto px-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+						<div className="flex min-h-0 flex-col gap-3 overflow-y-auto overscroll-contain px-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
 							{body}
 						</div>
 					</DrawerContent>

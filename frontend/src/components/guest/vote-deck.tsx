@@ -277,11 +277,15 @@ function DeckCard({
 }) {
 	const cardRef = useRef<HTMLButtonElement>(null);
 	const gesture = useRef({ startX: 0, startTime: 0, moved: false });
+	// Measured when a drag starts: reading layout during render forces a
+	// synchronous reflow on every frame of the drag.
+	const cardWidth = useRef(300);
 	const [dx, setDx] = useState(0);
 	const [dragging, setDragging] = useState(false);
 
 	function onPointerDown(event: PointerEvent<HTMLButtonElement>) {
 		event.currentTarget.setPointerCapture(event.pointerId);
+		cardWidth.current = event.currentTarget.offsetWidth || cardWidth.current;
 		gesture.current = {
 			startX: event.clientX,
 			startTime: event.timeStamp,
@@ -300,7 +304,7 @@ function DeckCard({
 	function onPointerUp(event: PointerEvent<HTMLButtonElement>) {
 		if (!dragging) return;
 		setDragging(false);
-		const width = cardRef.current?.offsetWidth ?? 1;
+		const width = cardWidth.current;
 		const elapsed = Math.max(event.timeStamp - gesture.current.startTime, 1);
 		const speed = Math.abs(dx) / elapsed;
 		const far = Math.abs(dx) > width * COMMIT_RATIO;
@@ -327,8 +331,10 @@ function DeckCard({
 		if (!wasDrag) onOpen();
 	}
 
-	const width = cardRef.current?.offsetWidth ?? 300;
-	const strength = Math.min(Math.abs(dx) / (width * COMMIT_RATIO), 1);
+	const strength = Math.min(
+		Math.abs(dx) / (cardWidth.current * COMMIT_RATIO),
+		1,
+	);
 
 	return (
 		<button
@@ -353,6 +359,7 @@ function DeckCard({
 				src={photo.urls.deck}
 				alt=""
 				draggable={false}
+				fetchPriority="high"
 				className="size-full object-cover"
 			/>
 			{dx > 0 && <VoteTag approved opacity={strength} />}

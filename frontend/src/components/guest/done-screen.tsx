@@ -30,7 +30,9 @@ export function DoneScreen({
 	return (
 		<main className="mx-auto flex min-h-svh max-w-md flex-col gap-8 px-6 pt-4 pb-10">
 			<header className="flex h-11 items-center">
-				<p className="font-semibold tracking-tight">Lumia</p>
+				<p translate="no" className="font-semibold tracking-tight">
+					Lumia
+				</p>
 			</header>
 
 			<div className="flex flex-col gap-2">

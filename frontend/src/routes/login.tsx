@@ -51,7 +51,10 @@ function Login() {
 	return (
 		<main className="mx-auto flex min-h-svh max-w-md flex-col gap-8 px-6 pt-12 pb-10">
 			<div className="flex flex-col items-start gap-2">
-				<h1 className="text-2xl leading-tight font-bold tracking-tight">
+				<h1
+					translate="no"
+					className="text-2xl leading-tight font-bold tracking-tight"
+				>
 					Lumia
 				</h1>
 				<p className="text-sm text-muted-foreground">

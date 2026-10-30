@@ -79,7 +79,7 @@ export function ResultsByPerson({
 										value={percent}
 										aria-label={`${participant.name} calificó ${participant.ratedCount} de ${photoCount} fotos`}
 									/>
-									<span className="flex items-center gap-3 text-[0.8125rem]">
+									<span className="flex items-center gap-3 text-[0.8125rem] tabular-nums">
 										<span className="flex items-center gap-1 text-primary">
 											<Heart className="size-3.5" aria-hidden />
 											{participant.approvedCount}
