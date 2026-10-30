@@ -1,0 +1,203 @@
+name: Release
+
+# check-version -> build (matrix) -> tag -> release -> deploy
+# The version lives only in VERSION. A push to main publishes only when it is
+# higher than the highest tag; otherwise every job after check-version skips.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Two merges in a row never race for the same tag: the second one waits.
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+env:
+  IMAGE_PREFIX: ghcr.io/elpitagoras14/lumia
+  # Build pushes only this tag. It carries the sha so re-running an old run
+  # never promotes the candidates of a newer one.
+  CANDIDATE: candidate-${{ github.sha }}
+
+jobs:
+  check-version:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      publish: ${{ steps.version.outputs.publish }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Read VERSION and compare it with the tags
+        id: version
+        run: |
+          version=$(tr -d '[:space:]' < VERSION)
+          if ! [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::VERSION '$version' is not MAJOR.MINOR.PATCH"
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+          if [ "$GITHUB_REF" != "refs/heads/main" ]; then
+            echo "::notice::Not running on main ($GITHUB_REF): nothing is published"
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+          elif [ -n "$(git ls-remote --tags origin "refs/tags/v${version}")" ]; then
+            echo "::notice::Tag v${version} already exists. Bump VERSION to publish."
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+          else
+            # sort -V compares numerically: 0.9.0 sorts below 0.10.0.
+            latest=$(git ls-remote --tags --refs origin 'refs/tags/v*' \
+              | sed 's|.*refs/tags/v||' \
+              | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -n 1 || true)
+            if [ -n "$latest" ] && [ "$(printf '%s\n%s\n' "$version" "$latest" | sort -V | tail -n 1)" != "$version" ]; then
+              echo "::error::VERSION ${version} is lower than the latest release (${latest})."
+              exit 1
+            fi
+            echo "publish=true" >> "$GITHUB_OUTPUT"
+          fi
+
+  # Each leg pushes only :candidate-<sha>. Nothing reaches :<version> or
+  # :latest yet, so if a leg fails fail-fast cancels the rest and what Dokploy
+  # pulls does not change.
+  build:
+    needs: check-version
+    if: needs.check-version.outputs.publish == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - image: api
+            dir: backend
+          - image: web
+            dir: frontend
+          - image: migrate
+            dir: dbmate
+          - image: nginx
+            dir: nginx
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-qemu-action@v3
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: docker/build-push-action@v6
+        env:
+          DOCKER_BUILD_RECORD_UPLOAD: false
+        with:
+          context: ./${{ matrix.dir }}
+          platforms: linux/amd64,linux/arm64
+          push: true
+          provenance: false
+          sbom: false
+          tags: ${{ env.IMAGE_PREFIX }}-${{ matrix.image }}:${{ env.CANDIDATE }}
+          # One scope per image: a shared one makes each leg evict the others.
+          cache-from: type=gha,scope=${{ matrix.image }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.image }}
+
+  # Runs only when every leg succeeded. All :<version> tags first, then all
+  # :latest, so compose.prod.yaml (which pulls :latest) never sees a mix. Each
+  # step is an idempotent manifest copy, safe to re-run.
+  tag:
+    needs: [check-version, build]
+    if: needs.check-version.outputs.publish == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      packages: write
+    env:
+      VERSION: ${{ needs.check-version.outputs.version }}
+      TAG: v${{ needs.check-version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Tag the images with the version
+        run: |
+          for image in api web migrate nginx; do
+            docker buildx imagetools create \
+              --tag "$IMAGE_PREFIX-$image:$VERSION" \
+              "$IMAGE_PREFIX-$image:$CANDIDATE"
+          done
+
+      - name: Move :latest
+        run: |
+          for image in api web migrate nginx; do
+            docker buildx imagetools create \
+              --tag "$IMAGE_PREFIX-$image:latest" \
+              "$IMAGE_PREFIX-$image:$VERSION"
+          done
+
+      # On the exact commit that was built, not on main's head at this point.
+      # If the tag appeared meanwhile it fails: a tag is never moved.
+      - name: Create the git tag
+        run: |
+          if [ -n "$(git ls-remote --tags origin "refs/tags/$TAG")" ]; then
+            echo "::error::Tag $TAG already exists"
+            exit 1
+          fi
+          git tag "$TAG" "$GITHUB_SHA"
+          git push origin "refs/tags/$TAG"
+
+  release:
+    needs: [check-version, tag]
+    if: needs.check-version.outputs.publish == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    env:
+      TAG: v${{ needs.check-version.outputs.version }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Publish the GitHub release
+        run: |
+          gh release create "$TAG" \
+            --repo "$GITHUB_REPOSITORY" \
+            --title "$TAG" \
+            --verify-tag \
+            --generate-notes
+
+  # Dokploy pulls :latest (pull_policy: always) and recreates the stack.
+  deploy:
+    needs: [check-version, release]
+    if: needs.check-version.outputs.publish == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Deploy to Dokploy
+        env:
+          DOKPLOY_API_KEY: ${{ secrets.DOKPLOY_API_KEY }}
+          COMPOSE_ID: ${{ vars.DOKPLOY_COMPOSE_ID }}
+          VERSION: ${{ needs.check-version.outputs.version }}
+        run: |
+          curl -fsS -X POST \
+            'https://dokploy.elpitagoras14.qzz.io/api/compose.deploy' \
+            -H 'accept: application/json' \
+            -H 'Content-Type: application/json' \
+            -H "x-api-key: $DOKPLOY_API_KEY" \
+            -d "{\"composeId\": \"$COMPOSE_ID\", \"title\": \"Deployment v$VERSION\", \"description\": \"Automatic deployment from GitHub Actions\"}"
