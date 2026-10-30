@@ -91,6 +91,25 @@ The guest API lives under `/api/share/{token}`, authenticated by the participant
 
 No new environment variables.
 
+## Results
+
+The owner opens an album and switches from **Fotos** to **Resultados**. The view shows how many people joined, how many votes were cast out of the possible ones (photos × participants) and the completed percentage, and then groups the votes two ways:
+
+- **Por foto:** each photo with its votes in favour and against and how many participants have not rated it yet. **Más gustadas** sorts by votes in favour.
+- **Por persona:** each participant with how many photos they rated, their votes in favour and against, and how many are pending. Tapping a participant opens what they voted on every photo.
+
+A photo that a participant has not voted is pending: it counts as neither in favour nor against. Deleting a participant removes their votes and cannot be undone; if they open the link again with the same browser they are asked for a name and join as a new participant.
+
+The owner API lives under `/api/albums/{album_id}` and needs the owner's session (`401` without it). An album of another owner, or a participant of another album, answers `404` like one that does not exist:
+
+| Endpoint | Purpose |
+| --- | --- |
+| `GET /results` | The summary, the totals of every photo and the totals of every participant |
+| `GET /participants/{participant_id}/ratings` | Every photo of the album with that participant's vote (`approved`: `true`, `false` or `null` while pending) |
+| `DELETE /participants/{participant_id}` | Deletes the participant and their votes |
+
+No new environment variables.
+
 ## Migrations
 
 Migrations are plain SQL files in `dbmate/migrations/`, named `NNNN_description.sql` with a four-digit sequential number, each with a `-- migrate:up` and a `-- migrate:down` section. They are baked into the `migrate` image, so after adding one rebuild it:

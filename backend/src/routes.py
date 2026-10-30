@@ -4,6 +4,7 @@ from src import health
 from src.packages.albums.router import router as albums_router
 from src.packages.auth.router import router as auth_router
 from src.packages.photos.router import router as photos_router
+from src.packages.results.router import router as results_router
 from src.packages.sharing.router import guest_router, owner_router
 
 # Mounted under the same prefix the browser requests, and nginx forwards the
@@ -13,5 +14,6 @@ api_router.include_router(health.router)
 api_router.include_router(auth_router)
 api_router.include_router(albums_router)
 api_router.include_router(photos_router)
+api_router.include_router(results_router)
 api_router.include_router(owner_router)
 api_router.include_router(guest_router)

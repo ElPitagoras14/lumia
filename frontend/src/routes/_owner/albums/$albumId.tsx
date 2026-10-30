@@ -1,41 +1,55 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowLeft, ImagePlus, Share2, Trash2 } from "lucide-react";
+import { ArrowLeft, ImagePlus, Share2 } from "lucide-react";
 import { useState } from "react";
-import { ShareAlbumDialog } from "@/components/share-album-dialog";
+import { z } from "zod";
+import { AlbumPhotos } from "@/components/album-photos";
 import {
-	AlertDialog,
-	AlertDialogAction,
-	AlertDialogCancel,
-	AlertDialogContent,
-	AlertDialogDescription,
-	AlertDialogFooter,
-	AlertDialogHeader,
-	AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+	AlbumResults,
+	type ResultsGrouping,
+} from "@/components/results/album-results";
+import type { PhotoSort } from "@/components/results/results-by-photo";
+import { ShareAlbumDialog } from "@/components/share-album-dialog";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { UploadPhotosDialog } from "@/components/upload-photos-dialog";
 import {
-	deletePhoto,
 	getAlbum,
 	isApiError,
 	listPhotos,
 	MAX_PHOTOS_PER_ALBUM,
-	type Photo,
 } from "@/lib/api";
 
+// Which view is showing lives in the URL so a reload and the back button land
+// where expected. Defaults are left out of the URL, and an unknown value
+// falls back to the default instead of failing.
 export const Route = createFileRoute("/_owner/albums/$albumId")({
+	validateSearch: z.object({
+		view: z.enum(["photos", "results"]).optional().catch(undefined),
+		by: z.enum(["photo", "person"]).optional().catch(undefined),
+		sort: z.enum(["upload", "liked"]).optional().catch(undefined),
+		participant: z.number().int().optional().catch(undefined),
+	}),
 	component: AlbumScreen,
 });
 
 function AlbumScreen() {
 	const { albumId: rawId } = Route.useParams();
 	const albumId = Number(rawId);
-	const queryClient = useQueryClient();
+	const search = Route.useSearch();
+	const navigate = Route.useNavigate();
 	const [uploadOpen, setUploadOpen] = useState(false);
 	const [shareOpen, setShareOpen] = useState(false);
-	const [toDelete, setToDelete] = useState<Photo | null>(null);
+
+	const view = search.view ?? "photos";
+	const by: ResultsGrouping = search.by ?? "photo";
+	const sort: PhotoSort = search.sort ?? "upload";
+
+	// Each change is a new history entry, so back closes the detail and
+	// steps from "Resultados" to "Fotos".
+	function go(next: Partial<typeof search>) {
+		void navigate({ search: (prev) => ({ ...prev, ...next }) });
+	}
 
 	const album = useQuery({
 		queryKey: ["albums", albumId],
@@ -46,14 +60,6 @@ function AlbumScreen() {
 		queryKey: ["albums", albumId, "photos"],
 		queryFn: () => listPhotos(albumId),
 		enabled: album.isSuccess,
-	});
-
-	const remove = useMutation({
-		mutationFn: (photo: Photo) => deletePhoto(albumId, photo.id),
-		onSuccess: async () => {
-			await queryClient.invalidateQueries({ queryKey: ["albums"] });
-			setToDelete(null);
-		},
 	});
 
 	const photoCount = photos.data?.length ?? 0;
@@ -119,46 +125,54 @@ function AlbumScreen() {
 				)}
 			</section>
 
-			<section>
-				{photos.isPending && album.isSuccess && (
-					<div className="grid grid-cols-3 gap-2">
-						{["a", "b", "c", "d", "e", "f"].map((id) => (
-							<Skeleton key={id} className="aspect-square rounded-lg" />
-						))}
-					</div>
-				)}
-				{photos.isError && (
-					<p role="alert" className="text-sm text-destructive">
-						No se pudieron cargar las fotos. Inténtalo de nuevo en un momento.
-					</p>
-				)}
-				{photos.data?.length === 0 && (
-					<p className="text-center text-sm text-muted-foreground">
-						Este álbum todavía no tiene fotos.
-					</p>
-				)}
-				<ul className="grid grid-cols-3 gap-2">
-					{photos.data?.map((photo, index) => (
-						<li key={photo.id} className="relative">
-							<img
-								src={photo.urls.thumb}
-								alt={`Foto ${index + 1}`}
-								loading="lazy"
-								className="aspect-square w-full rounded-lg bg-muted object-cover"
-							/>
-							<Button
-								variant="secondary"
-								size="icon"
-								className="absolute top-1 right-1 bg-background/80"
-								aria-label={`Borrar la foto ${index + 1}`}
-								onClick={() => setToDelete(photo)}
-							>
-								<Trash2 aria-hidden />
-							</Button>
-						</li>
-					))}
-				</ul>
-			</section>
+			<nav className="flex gap-2" aria-label="Vista del álbum">
+				<Button
+					className="flex-1"
+					variant={view === "photos" ? "default" : "outline"}
+					aria-current={view === "photos" ? "page" : undefined}
+					onClick={() =>
+						go({
+							view: undefined,
+							by: undefined,
+							sort: undefined,
+							participant: undefined,
+						})
+					}
+				>
+					Fotos
+				</Button>
+				<Button
+					className="flex-1"
+					variant={view === "results" ? "default" : "outline"}
+					aria-current={view === "results" ? "page" : undefined}
+					disabled={album.isPending}
+					onClick={() => go({ view: "results" })}
+				>
+					Resultados
+				</Button>
+			</nav>
+
+			{view === "photos" ? (
+				<AlbumPhotos albumId={albumId} photos={photos} />
+			) : (
+				<AlbumResults
+					albumId={albumId}
+					by={by}
+					sort={sort}
+					participantId={search.participant}
+					onBy={(next) =>
+						go({
+							by: next === "photo" ? undefined : next,
+							sort: undefined,
+							participant: undefined,
+						})
+					}
+					onSort={(next) => go({ sort: next === "upload" ? undefined : next })}
+					onOpenParticipant={(participant) => go({ participant })}
+					onCloseParticipant={() => go({ participant: undefined })}
+					onShare={() => setShareOpen(true)}
+				/>
+			)}
 
 			<UploadPhotosDialog
 				albumId={albumId}
@@ -174,44 +188,6 @@ function AlbumScreen() {
 					onOpenChange={setShareOpen}
 				/>
 			)}
-
-			<AlertDialog
-				open={toDelete !== null}
-				onOpenChange={(open) => {
-					if (!open) {
-						setToDelete(null);
-						remove.reset();
-					}
-				}}
-			>
-				<AlertDialogContent>
-					<AlertDialogHeader>
-						<AlertDialogTitle>¿Borrar esta foto?</AlertDialogTitle>
-						<AlertDialogDescription>
-							Se borrará también el voto que haya recibido. No se puede
-							deshacer.
-						</AlertDialogDescription>
-					</AlertDialogHeader>
-					{remove.isError && (
-						<p role="alert" className="text-sm text-destructive">
-							No se pudo borrar la foto. Inténtalo de nuevo.
-						</p>
-					)}
-					<AlertDialogFooter>
-						<AlertDialogCancel>Cancelar</AlertDialogCancel>
-						<AlertDialogAction
-							variant="destructive"
-							disabled={remove.isPending}
-							onClick={(event) => {
-								event.preventDefault();
-								if (toDelete) remove.mutate(toDelete);
-							}}
-						>
-							Borrar foto
-						</AlertDialogAction>
-					</AlertDialogFooter>
-				</AlertDialogContent>
-			</AlertDialog>
 		</main>
 	);
 }
