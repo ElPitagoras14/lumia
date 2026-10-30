@@ -34,7 +34,7 @@ export function AlbumPhotos({ albumId, photos }: AlbumPhotosProps) {
 	});
 
 	return (
-		<section>
+		<section className="pb-24">
 			{photos.isPending && (
 				<div className="grid grid-cols-3 gap-2">
 					{["a", "b", "c", "d", "e", "f"].map((id) => (
