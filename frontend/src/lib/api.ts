@@ -102,6 +102,41 @@ export interface GuestPhoto {
 	approved: boolean | null;
 }
 
+// What the owner sees of an album's votes. Pending is a photo/participant
+// pair without a vote: it is neither approved nor rejected.
+export interface AlbumResults {
+	summary: {
+		participantCount: number;
+		voteCount: number;
+		possibleVotes: number;
+	};
+	photos: PhotoTally[];
+	participants: ParticipantTally[];
+}
+
+export interface PhotoTally {
+	id: number;
+	thumbUrl: string;
+	approvedCount: number;
+	rejectedCount: number;
+	pendingCount: number;
+}
+
+export interface ParticipantTally {
+	id: number;
+	name: string;
+	ratedCount: number;
+	approvedCount: number;
+	rejectedCount: number;
+}
+
+// One photo with a participant's own vote, `null` while still pending.
+export interface ParticipantVote {
+	id: number;
+	thumbUrl: string;
+	approved: boolean | null;
+}
+
 export interface Photo {
 	id: number;
 	sizeBytes: number;
@@ -179,4 +214,20 @@ export const ratePhoto = (token: string, photoId: number, approved: boolean) =>
 		method: "put",
 		url: `/share/${token}/photos/${photoId}/rating`,
 		data: { approved },
+	});
+
+export const getAlbumResults = (albumId: number) =>
+	request<AlbumResults>({ method: "get", url: `/albums/${albumId}/results` });
+
+export const getParticipantVotes = (albumId: number, participantId: number) =>
+	request<ParticipantVote[]>({
+		method: "get",
+		url: `/albums/${albumId}/participants/${participantId}/ratings`,
+	});
+
+// Removes the participant and, with them, every vote they cast.
+export const deleteParticipant = (albumId: number, participantId: number) =>
+	request<null>({
+		method: "delete",
+		url: `/albums/${albumId}/participants/${participantId}`,
 	});
