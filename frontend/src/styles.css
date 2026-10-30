@@ -55,9 +55,6 @@ body {
   --color-card: var(--card);
   --color-foreground: var(--foreground);
   --color-background: var(--background);
-  --color-like: var(--like);
-  --color-like-foreground: var(--like-foreground);
-  --color-dislike: var(--dislike);
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -84,21 +81,19 @@ body {
   --muted-foreground: oklch(0.5032 0 0);
   --accent: oklch(0.931 0 0);
   --accent-foreground: oklch(0.2435 0 0);
-  --destructive: oklch(0.6271 0.1936 33.339);
+  /* Dark enough to pass 4.5:1 as text on the page and on muted (5.05 / 4.63). */
+  --destructive: oklch(0.55 0.19 33);
   --border: oklch(0.8822 0 0);
   --input: oklch(0.8822 0 0);
   --ring: oklch(0.56 0.09 58);
-  --like: oklch(0.55 0.12 165);
-  --like-foreground: oklch(1 0 0);
-  --dislike: oklch(0.6271 0.1936 33.339);
   --radius: 0.5rem;
 
   /* Not part of the palette: derived from it so they cannot drift apart. */
   --popover: var(--card);
   --popover-foreground: var(--card-foreground);
   --chart-1: var(--primary);
-  --chart-2: var(--like);
-  --chart-3: var(--dislike);
+  --chart-2: var(--destructive);
+  --chart-3: var(--foreground);
   --chart-4: var(--muted-foreground);
   --chart-5: var(--border);
   --sidebar: var(--card);
@@ -129,9 +124,6 @@ body {
     --border: oklch(0.3 0 0);
     --input: oklch(0.3 0 0);
     --ring: oklch(0.76 0.1 65);
-    --like: oklch(0.76 0.13 165);
-    --like-foreground: oklch(0.2 0.03 165);
-    --dislike: oklch(0.7 0.17 35);
   }
 }
 

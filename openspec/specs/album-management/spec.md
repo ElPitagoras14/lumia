@@ -33,7 +33,7 @@ El dueño con sesión SHALL poder crear un álbum indicando un título. El títu
 
 ### Requirement: Listar solo los álbumes propios
 
-El listado SHALL devolver únicamente los álbumes del dueño que lo pide, del más reciente al más antiguo. Cada álbum SHALL indicar cuántas fotos tiene y, si tiene alguna, la miniatura de la primera foto subida.
+El listado SHALL devolver únicamente los álbumes del dueño que lo pide, del más reciente al más antiguo. Cada álbum SHALL indicar cuántas fotos tiene y las imágenes de portada de hasta sus tres primeras fotos subidas, en orden de subida.
 
 #### Scenario: Dos dueños, dos listados
 
@@ -43,12 +43,17 @@ El listado SHALL devolver únicamente los álbumes del dueño que lo pide, del m
 #### Scenario: Álbum sin fotos
 
 - **WHEN** el dueño lista un álbum que no tiene fotos
-- **THEN** el álbum indica cero fotos y ninguna miniatura
+- **THEN** el álbum indica cero fotos y ninguna imagen de portada
 
-#### Scenario: Miniatura de portada
+#### Scenario: Portada en mosaico
 
-- **WHEN** el dueño lista un álbum con varias fotos
-- **THEN** la miniatura es la de la primera foto subida
+- **WHEN** el dueño lista un álbum con cuatro o más fotos
+- **THEN** la portada son las tres primeras fotos subidas, en ese orden
+
+#### Scenario: Pocas fotos
+
+- **WHEN** el dueño lista un álbum con una o dos fotos
+- **THEN** la portada contiene solo esas fotos
 
 ### Requirement: Ver un álbum propio
 

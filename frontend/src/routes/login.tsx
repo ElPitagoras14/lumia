@@ -1,6 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, redirect, useRouter } from "@tanstack/react-router";
-import { Images } from "lucide-react";
 import { type FormEvent, useState } from "react";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
@@ -51,10 +50,7 @@ function Login() {
 
 	return (
 		<main className="mx-auto flex min-h-svh max-w-md flex-col gap-8 px-6 pt-12 pb-10">
-			<div className="flex flex-col items-start gap-4">
-				<div className="grid size-12 place-items-center rounded-xl bg-primary text-primary-foreground">
-					<Images className="size-6" aria-hidden />
-				</div>
+			<div className="flex flex-col items-start gap-2">
 				<h1 className="text-2xl leading-tight font-bold tracking-tight">
 					Lumia
 				</h1>

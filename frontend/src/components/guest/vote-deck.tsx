@@ -18,6 +18,10 @@ const FLICK_MIN_DISTANCE = 40;
 const TAP_SLOP = 6;
 const PRELOAD_AHEAD = 2;
 const LEAVE_FALLBACK_MS = 600;
+// How long the last vote stays offered for a change. A mistaken swipe is
+// almost always the wrong direction, and the API has no way back to pending
+// (guest-voting spec), so the fix is flipping the vote.
+const CHANGE_WINDOW_MS = 5000;
 
 interface VoteDeckProps {
 	title: string;
@@ -49,6 +53,19 @@ export function VoteDeck({
 	} | null>(null);
 	const preloaded = useRef<HTMLImageElement[]>([]);
 	const clearLeaving = useCallback(() => setLeaving(null), []);
+	// Read by screen readers after each vote: the card only changes silently.
+	const [announcement, setAnnouncement] = useState("");
+	const [lastVote, setLastVote] = useState<{
+		photoId: number;
+		number: number;
+		approved: boolean;
+	} | null>(null);
+
+	useEffect(() => {
+		if (!lastVote) return;
+		const timer = setTimeout(() => setLastVote(null), CHANGE_WINDOW_MS);
+		return () => clearTimeout(timer);
+	}, [lastVote]);
 
 	const reducedMotion =
 		typeof window !== "undefined" &&
@@ -57,7 +74,25 @@ export function VoteDeck({
 	function vote(approved: boolean, from = 0) {
 		if (!current) return;
 		if (!reducedMotion) setLeaving({ photo: current, approved, from });
+		const number = photos.findIndex((photo) => photo.id === current.id) + 1;
+		const left = pending.length - 1;
+		setAnnouncement(
+			`${approved ? "Me gusta" : "No me gusta"} en la foto ${number}. ${
+				left === 1 ? "Queda 1 foto" : `Quedan ${left} fotos`
+			}.`,
+		);
+		setLastVote({ photoId: current.id, number, approved });
 		onVote(current.id, approved);
+	}
+
+	function changeLastVote() {
+		if (!lastVote) return;
+		const approved = !lastVote.approved;
+		setAnnouncement(
+			`Cambiado a ${approved ? "me gusta" : "no me gusta"} en la foto ${lastVote.number}.`,
+		);
+		setLastVote(null);
+		onVote(lastVote.photoId, approved);
 	}
 
 	// Warms the next cards so they appear without a visible load. The URLs are
@@ -87,37 +122,35 @@ export function VoteDeck({
 	const position = photos.findIndex((photo) => photo.id === current.id) + 1;
 
 	return (
-		<main className="mx-auto flex h-svh max-w-md flex-col gap-4 px-4 pt-4 pb-6">
+		<main className="mx-auto flex h-svh max-w-md flex-col gap-3 px-4 pt-2 pb-6">
 			<header className="flex items-center justify-between gap-3">
-				<div className="flex min-w-0 flex-col">
-					<strong className="truncate text-base">{title}</strong>
-					<span className="text-[0.8125rem] text-muted-foreground">
-						Hola, {participantName}
-					</span>
-				</div>
-				<Button variant="outline" size="sm" onClick={onOpenVotes}>
+				<h1 className="min-w-0 truncate text-[0.8125rem] font-normal text-muted-foreground">
+					<strong className="text-sm font-semibold text-foreground">
+						{title}
+					</strong>
+					{" · "}Hola, {participantName}
+				</h1>
+				<Button
+					variant="ghost"
+					className="-mr-2 h-11 shrink-0 px-3"
+					onClick={onOpenVotes}
+				>
 					<LayoutGrid aria-hidden />
 					Mis votos
 				</Button>
 			</header>
 
-			<div className="flex flex-col gap-2">
-				<div className="flex items-baseline justify-between">
-					<span className="text-[0.8125rem] text-muted-foreground">
-						Tu avance
-					</span>
-					<span>
-						<strong>{rated}</strong>{" "}
-						<span className="text-[0.8125rem] text-muted-foreground">
-							de {total}
-						</span>
-					</span>
-				</div>
+			<div className="flex items-center gap-3">
 				<Progress
+					className="flex-1"
 					value={(rated / total) * 100}
 					aria-label="Fotos calificadas"
 					getValueLabel={() => `${rated} de ${total}`}
 				/>
+				<span className="shrink-0 text-[0.8125rem] text-muted-foreground tabular-nums">
+					<strong className="font-semibold text-foreground">{rated}</strong> de{" "}
+					{total}
+				</span>
 			</div>
 
 			<div className="relative min-h-0 flex-1">
@@ -130,7 +163,7 @@ export function VoteDeck({
 				<DeckCard
 					key={`card-${current.id}`}
 					photo={current}
-					label={`Foto ${position} de ${total}. Toca para ampliar`}
+					label={`Foto ${position} de ${total}. Toca para ampliar. Vota con los botones de abajo o con las flechas izquierda y derecha`}
 					caption={`Foto ${position}`}
 					onCommit={vote}
 					onOpen={() => onOpenPhoto(current.id)}
@@ -161,6 +194,7 @@ export function VoteDeck({
 					size="icon-lg"
 					className="size-14 rounded-full"
 					aria-label="No me gusta"
+					aria-keyshortcuts="ArrowLeft"
 					onClick={() => vote(false)}
 				>
 					<X aria-hidden className="size-6" />
@@ -170,13 +204,35 @@ export function VoteDeck({
 					size="icon-lg"
 					className="size-14 rounded-full"
 					aria-label="Me gusta"
+					aria-keyshortcuts="ArrowRight"
 					onClick={() => vote(true)}
 				>
 					<Heart aria-hidden className="size-6" />
 				</Button>
 			</div>
-			<p className="text-center text-[0.8125rem] text-muted-foreground">
-				Desliza a la derecha si te gusta y a la izquierda si no
+			{/* Same height either way, so the deck does not jump. */}
+			<div className="flex h-11 items-center justify-center gap-2 text-[0.8125rem] text-muted-foreground">
+				{lastVote ? (
+					<>
+						<span>
+							{lastVote.approved ? "Me gusta" : "No me gusta"} en la foto{" "}
+							{lastVote.number}
+						</span>
+						<span aria-hidden>·</span>
+						<Button
+							variant="ghost"
+							className="-mx-2 h-11 px-2 font-semibold text-foreground"
+							onClick={changeLastVote}
+						>
+							Cambiar
+						</Button>
+					</>
+				) : (
+					<span>Desliza a la derecha si te gusta y a la izquierda si no</span>
+				)}
+			</div>
+			<p className="sr-only" aria-live="polite">
+				{announcement}
 			</p>
 		</main>
 	);

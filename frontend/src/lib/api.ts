@@ -82,7 +82,9 @@ export interface Album {
 	title: string;
 	createdAt: string;
 	photoCount: number;
-	coverUrl: string | null;
+	// Up to three, in upload order: the first is a large variant, the rest
+	// are thumbnails.
+	coverUrls: string[];
 	// Null while the album has no link; the link is `/a/<shareToken>`.
 	shareToken: string | null;
 	participantCount: number;
@@ -117,6 +119,7 @@ export interface AlbumResults {
 export interface PhotoTally {
 	id: number;
 	thumbUrl: string;
+	deckUrl: string;
 	approvedCount: number;
 	rejectedCount: number;
 	pendingCount: number;

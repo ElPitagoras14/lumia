@@ -1,0 +1,289 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-30T00:00:00-05:00",
+  "title": "Design System: Lumia",
+  "extensions": {
+    "colorMeta": {
+      "primary": {
+        "role": "primary",
+        "displayName": "Toasted Honey",
+        "canonical": "oklch(0.56 0.09 58)",
+        "darkPair": "primary-dark",
+        "tonalRamp": [
+          "oklch(0.25 0.04 58)",
+          "oklch(0.35 0.06 58)",
+          "oklch(0.45 0.08 58)",
+          "oklch(0.56 0.09 58)",
+          "oklch(0.66 0.1 62)",
+          "oklch(0.76 0.1 65)",
+          "oklch(0.86 0.06 68)",
+          "oklch(0.95 0.025 70)"
+        ]
+      },
+      "secondary": {
+        "role": "secondary",
+        "displayName": "Pale Honey Wash",
+        "canonical": "oklch(0.93 0.035 70)",
+        "darkPair": "secondary-dark",
+        "tonalRamp": [
+          "oklch(0.2 0.01 60)",
+          "oklch(0.27 0.012 60)",
+          "oklch(0.38 0.06 50)",
+          "oklch(0.5 0.05 60)",
+          "oklch(0.65 0.045 65)",
+          "oklch(0.8 0.04 68)",
+          "oklch(0.93 0.035 70)",
+          "oklch(0.97 0.015 72)"
+        ]
+      },
+      "background": {
+        "role": "neutral",
+        "displayName": "Light Table White",
+        "canonical": "oklch(0.9821 0 0)",
+        "darkPair": "background-dark",
+        "tonalRamp": [
+          "oklch(0.17 0 0)",
+          "oklch(0.215 0 0)",
+          "oklch(0.3 0 0)",
+          "oklch(0.5032 0 0)",
+          "oklch(0.72 0 0)",
+          "oklch(0.8822 0 0)",
+          "oklch(0.9521 0 0)",
+          "oklch(0.9821 0 0)"
+        ]
+      },
+      "foreground": {
+        "role": "neutral",
+        "displayName": "Graphite Ink",
+        "canonical": "oklch(0.2435 0 0)",
+        "darkPair": "foreground-dark"
+      },
+      "card": {
+        "role": "neutral",
+        "displayName": "Sheet",
+        "canonical": "oklch(0.9911 0 0)",
+        "darkPair": "card-dark"
+      },
+      "muted": {
+        "role": "neutral",
+        "displayName": "Tray",
+        "canonical": "oklch(0.9521 0 0)",
+        "darkPair": "muted-dark"
+      },
+      "muted-foreground": {
+        "role": "neutral",
+        "displayName": "Pencil",
+        "canonical": "oklch(0.5032 0 0)",
+        "darkPair": "muted-foreground-dark"
+      },
+      "border": {
+        "role": "neutral",
+        "displayName": "Hairline",
+        "canonical": "oklch(0.8822 0 0)",
+        "darkPair": "border-dark"
+      },
+      "destructive": {
+        "role": "signal",
+        "displayName": "Ember",
+        "canonical": "oklch(0.55 0.19 33)",
+        "darkPair": "destructive-dark",
+        "tonalRamp": [
+          "oklch(0.3 0.09 33)",
+          "oklch(0.4 0.13 33)",
+          "oklch(0.52 0.17 33)",
+          "oklch(0.55 0.19 33)",
+          "oklch(0.7 0.17 35)",
+          "oklch(0.8 0.1 35)",
+          "oklch(0.9 0.05 35)",
+          "oklch(0.96 0.02 35)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "The single heading on standalone screens (login, guest done screen)."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Section headings inside a screen."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "App name, album titles, list item names."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Default interface text, buttons, errors, descriptions."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Muted captions, counters, hints and helper text."
+      }
+    },
+    "shadows": [
+      {
+        "name": "pick-up",
+        "value": "0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)",
+        "purpose": "Only on objects the user can drag or that float over content: the deck card and the floating upload button."
+      },
+      {
+        "name": "card-ring",
+        "value": "0 0 0 1px color-mix(in oklch, var(--foreground) 10%, transparent)",
+        "purpose": "Separates cards from the page without elevation."
+      }
+    ],
+    "motion": [
+      {
+        "name": "deck-return",
+        "value": "transform 200ms ease-out",
+        "purpose": "A released card that did not commit springs back to center."
+      },
+      {
+        "name": "deck-leave",
+        "value": "transform 250ms ease-in",
+        "purpose": "A voted card flies off 150% of its width, rotated 20deg."
+      },
+      {
+        "name": "press",
+        "value": "translateY(1px)",
+        "purpose": "Buttons dip on press."
+      },
+      {
+        "name": "reduced-motion",
+        "value": "prefers-reduced-motion: reduce",
+        "purpose": "The deck skips the fly-off animation entirely."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "md",
+        "value": "768px",
+        "purpose": "Only changes input text from 16px to 14px; the layout stays a 448px column."
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The one honey action on a screen.",
+      "html": "<button class=\"ds-btn-primary\"><svg viewBox=\"0 0 24 24\" width=\"16\" height=\"16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\"><path d=\"M5 12h14M12 5v14\"/></svg>Nuevo álbum</button>",
+      "css": ".ds-btn-primary { display: inline-flex; align-items: center; gap: 6px; height: 44px; padding: 0 16px; border: 1px solid transparent; border-radius: var(--radius, 8px); background: var(--primary); color: var(--primary-foreground); font: 500 14px/1 'Inter Variable', sans-serif; cursor: pointer; transition: all 150ms; } .ds-btn-primary:hover { background: color-mix(in oklch, var(--primary) 80%, transparent); } .ds-btn-primary:focus-visible { outline: none; border-color: var(--ring); box-shadow: 0 0 0 3px color-mix(in oklch, var(--ring) 50%, transparent); } .ds-btn-primary:active { transform: translateY(1px); }"
+    },
+    {
+      "name": "Outline Button",
+      "kind": "button",
+      "refersTo": "button-outline",
+      "description": "Secondary header actions such as sign out or 'Mis votos'.",
+      "html": "<button class=\"ds-btn-outline\">Cerrar sesión</button>",
+      "css": ".ds-btn-outline { display: inline-flex; align-items: center; gap: 6px; height: 44px; padding: 0 16px; border: 1px solid var(--border); border-radius: var(--radius, 8px); background: var(--background); color: var(--foreground); font: 500 14px/1 'Inter Variable', sans-serif; cursor: pointer; transition: all 150ms; } .ds-btn-outline:hover { background: var(--muted); } .ds-btn-outline:focus-visible { outline: none; border-color: var(--ring); box-shadow: 0 0 0 3px color-mix(in oklch, var(--ring) 50%, transparent); } .ds-btn-outline:active { transform: translateY(1px); }"
+    },
+    {
+      "name": "Floating Upload Button",
+      "kind": "button",
+      "refersTo": "button-fab",
+      "description": "Pinned to the bottom of the album column; the only floating object besides the deck card.",
+      "html": "<button class=\"ds-btn-fab\"><svg viewBox=\"0 0 24 24\" width=\"20\" height=\"20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\"><path d=\"M5 12h14M12 5v14\"/></svg>Subir fotos</button>",
+      "css": ".ds-btn-fab { display: inline-flex; align-items: center; gap: 10px; height: 56px; padding: 0 20px; border: 0; border-radius: calc(var(--radius, 8px) * 1.8); background: var(--primary); color: var(--primary-foreground); font: 700 15px/1 'Inter Variable', sans-serif; box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1); cursor: pointer; } .ds-btn-fab:hover { background: color-mix(in oklch, var(--primary) 80%, transparent); } .ds-btn-fab:focus-visible { outline: none; box-shadow: 0 0 0 3px color-mix(in oklch, var(--ring) 50%, transparent); } .ds-btn-fab:active { transform: translateY(1px); }"
+    },
+    {
+      "name": "Vote Buttons",
+      "kind": "custom",
+      "refersTo": "vote-button",
+      "description": "56px circles under the deck: outline for no, honey for yes.",
+      "html": "<div class=\"ds-votes\"><button class=\"ds-vote ds-vote-no\" aria-label=\"No me gusta\"><svg viewBox=\"0 0 24 24\" width=\"24\" height=\"24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\"><path d=\"M18 6 6 18M6 6l12 12\"/></svg></button><button class=\"ds-vote ds-vote-yes\" aria-label=\"Me gusta\"><svg viewBox=\"0 0 24 24\" width=\"24\" height=\"24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z\"/></svg></button></div>",
+      "css": ".ds-votes { display: flex; gap: 24px; justify-content: center; } .ds-vote { width: 56px; height: 56px; border-radius: 9999px; display: grid; place-items: center; cursor: pointer; transition: all 150ms; } .ds-vote-no { background: var(--background); color: var(--foreground); border: 1px solid var(--border); } .ds-vote-no:hover { background: var(--muted); } .ds-vote-yes { background: var(--primary); color: var(--primary-foreground); border: 0; } .ds-vote-yes:hover { background: color-mix(in oklch, var(--primary) 80%, transparent); } .ds-vote:focus-visible { outline: none; box-shadow: 0 0 0 3px color-mix(in oklch, var(--ring) 50%, transparent); } .ds-vote:active { transform: translateY(1px); }"
+    },
+    {
+      "name": "Text Input",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Hairline field with a honey focus ring.",
+      "html": "<input class=\"ds-input\" placeholder=\"Nombre del álbum\">",
+      "css": ".ds-input { height: 44px; width: 240px; padding: 4px 12px; border: 1px solid var(--input, var(--border)); border-radius: var(--radius, 8px); background: transparent; color: var(--foreground); font: 400 14px 'Inter Variable', sans-serif; transition: border-color 150ms, box-shadow 150ms; } .ds-input::placeholder { color: var(--muted-foreground); } .ds-input:focus-visible { outline: none; border-color: var(--ring); box-shadow: 0 0 0 3px color-mix(in oklch, var(--ring) 50%, transparent); }"
+    },
+    {
+      "name": "Link Badges",
+      "kind": "chip",
+      "refersTo": "badge-active",
+      "description": "Album share state: outline badges; an active link carries a small honey dot.",
+      "html": "<span class=\"ds-badge\"><span class=\"ds-dot\"></span>Enlace activo</span> <span class=\"ds-badge ds-badge-off\">Sin enlace</span>",
+      "css": ".ds-badge { display: inline-flex; align-items: center; gap: 4px; height: 20px; padding: 2px 8px; border-radius: 9999px; border: 1px solid var(--border); color: var(--foreground); font: 500 12px/1 'Inter Variable', sans-serif; } .ds-badge-off { color: var(--muted-foreground); } .ds-dot { width: 6px; height: 6px; border-radius: 9999px; background: var(--primary); }"
+    },
+    {
+      "name": "Album Card",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "List item on the owner's home: cover, title, count and link badge, with a ghost delete action.",
+      "html": "<div class=\"ds-card\"><div class=\"ds-cover\"></div><div class=\"ds-card-body\"><p class=\"ds-card-title\">Boda de Ana</p><p class=\"ds-card-meta\">48 fotos</p><span class=\"ds-badge-mini\">Enlace activo</span></div></div>",
+      "css": ".ds-card { display: flex; align-items: center; gap: 12px; padding: 12px; width: 320px; border-radius: calc(var(--radius, 8px) * 1.4); background: var(--card); color: var(--card-foreground, var(--foreground)); box-shadow: 0 0 0 1px color-mix(in oklch, var(--foreground) 10%, transparent); font-family: 'Inter Variable', sans-serif; } .ds-cover { width: 56px; height: 56px; flex: none; border-radius: var(--radius, 8px); background: linear-gradient(160deg, oklch(0.82 0.09 75), oklch(0.55 0.11 40) 60%, oklch(0.32 0.05 30)); } .ds-card-body p { margin: 0; } .ds-card-title { font-weight: 500; font-size: 16px; } .ds-card-meta { font-size: 14px; color: var(--muted-foreground); } .ds-badge-mini { display: inline-block; margin-top: 4px; height: 20px; padding: 2px 8px; border-radius: 9999px; border: 1px solid var(--border); color: var(--foreground); font-size: 12px; font-weight: 500; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Light Table",
+    "overview": "Lumia is a photographer's light table. The surface is even, neutral and quiet, and the only things that glow on it are the photos and the one action that matters on each screen. The interface steps back: no tinted backgrounds, no decorative color, no ornament that competes with a picture. Warmth lives in a single place, the toasted-honey accent, and it is spent sparingly.\n\nEvery surface is a task surface (Operate mode). The owner manages albums and reads results; the guest swipes through a deck. Both happen on a phone first, inside a single centered column, so density stays moderate and touch targets stay generous. The components are tactile and friendly: soft corners, a physical response to touch (the deck card follows the finger and tilts, buttons dip a pixel on press), and large round voting buttons a thumb can find without looking.\n\nLight and dark are equal citizens. The app follows the system preference, with no theme switch, and every token has a pair. In dark mode the table becomes a graphite viewer and the honey lightens so it still reads as the one source of light.",
+    "keyCharacteristics": [
+      "Neutral graphite surfaces with zero chroma; the honey accent is the only hue in the chrome.",
+      "Photos carry the color and get the space.",
+      "One centered column (448px max) on every screen, phone-first.",
+      "Flat at rest; shadows only on things you can pick up (deck cards, the floating upload button).",
+      "Tactile, soft-cornered controls with physical feedback."
+    ],
+    "rules": [
+      {
+        "name": "The One Light Rule",
+        "body": "Honey is the only hue in the interface. If a screen has two honey elements competing, one of them is wrong. Photos are the only other color allowed.",
+        "section": "colors"
+      },
+      {
+        "name": "The Honey Means Yes Rule",
+        "body": "A positive vote is honey, a negative vote is ember, everywhere: in the deck, the viewer's selected state and the small vote marks on thumbnails. Never green.",
+        "section": "colors"
+      },
+      {
+        "name": "The Neutral Selection Rule",
+        "body": "The selected option of a selector (filters, groupings, sort, tabs) is graphite: the button `selected` variant, or a foreground underline for tabs. Selection is state, not an action, so it never takes honey.",
+        "section": "colors"
+      },
+      {
+        "name": "The Paired Token Rule",
+        "body": "Never write a raw color in a component. Every color is a token with a light and a dark value, so dark mode cannot drift.",
+        "section": "colors"
+      },
+      {
+        "name": "The Readable Signal Rule",
+        "body": "Any token used as text (foreground, pencil, honey, ember) must reach 4.5:1 on both the page and the tray, in light and in dark. Check a new value before shipping it.",
+        "section": "colors"
+      },
+      {
+        "name": "The Weight Not Face Rule",
+        "body": "Emphasis is a heavier weight of Inter, never a new font, italic or color.",
+        "section": "typography"
+      },
+      {
+        "name": "The Pick-Up Rule",
+        "body": "If you can't drag it or it doesn't float over content, it doesn't get a shadow.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do let photos take the space: full-bleed in the deck, square `object-cover` tiles in grids.",
+      "Do use honey for exactly one primary action per screen, plus positive-vote signals and the active-link dot.",
+      "Do define every new color as a light/dark token pair in `styles.css`.",
+      "Do keep everything inside the 448px column with 16px side padding.",
+      "Do keep every touch target at 44px or more: the default button, icon button and input are 44px. The `sm` (36px) and `icon-sm` sizes are only for secondary controls laid over photos, such as the delete button on an owner's thumbnail.",
+      "Do respect `prefers-reduced-motion` for any movement beyond a color change."
+    ],
+    "donts": [
+      "Don't tint backgrounds or cards; the table is neutral.",
+      "Don't use green for \"me gusta\", or honey for a selected option, a tab or a brand mark.",
+      "Don't stack an icon tile above a heading.",
+      "Don't add shadows to cards, lists or dialogs at rest (The Pick-Up Rule).",
+      "Don't add a second typeface or use color for emphasis in text.",
+      "Don't use solid red fills; destructive actions are an ember tint.",
+      "Don't add a theme switch; the app follows the system preference."
+    ]
+  }
+}

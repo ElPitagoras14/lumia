@@ -13,6 +13,8 @@ class ResultsSummary(ApiModel):
 class PhotoResultResponse(ApiModel):
     id: int
     thumb_url: str
+    # For the most liked photo shown large and for opening any photo.
+    deck_url: str
     approved_count: int
     rejected_count: int
     pending_count: int
@@ -43,6 +45,7 @@ class AlbumResultsResponse(ApiModel):
                 PhotoResultResponse(
                     id=item.photo.id,
                     thumb_url=variant_url(item.photo.storage_key, "thumb"),
+                    deck_url=variant_url(item.photo.storage_key, "deck"),
                     approved_count=item.photo.approved_count,
                     rejected_count=item.photo.rejected_count,
                     pending_count=item.pending_count,

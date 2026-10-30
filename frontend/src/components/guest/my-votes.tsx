@@ -13,10 +13,22 @@ interface MyVotesProps {
 	onBack: () => void;
 }
 
-const FILTERS: { value: VoteFilter; label: string }[] = [
+// The vote filters show the same heart and cross as the marks on the
+// thumbnails, which keeps the four 44px filters on one row.
+const FILTERS: {
+	value: VoteFilter;
+	label: string;
+	icon?: typeof Heart;
+	tone?: string;
+}[] = [
 	{ value: "all", label: "Todas" },
-	{ value: "liked", label: "Me gusta" },
-	{ value: "disliked", label: "No me gusta" },
+	{ value: "liked", label: "Me gusta", icon: Heart, tone: "text-primary" },
+	{
+		value: "disliked",
+		label: "No me gusta",
+		icon: X,
+		tone: "text-destructive",
+	},
 	{ value: "pending", label: "Pendientes" },
 ];
 
@@ -56,15 +68,26 @@ export function MyVotes({
 			</header>
 
 			<div className="flex flex-wrap gap-2">
-				{FILTERS.map(({ value, label }) => (
+				{FILTERS.map(({ value, label, icon: Icon, tone }) => (
 					<Button
 						key={value}
-						variant={filter === value ? "default" : "outline"}
-						size="sm"
+						variant={filter === value ? "selected" : "outline"}
 						aria-pressed={filter === value}
+						title={Icon ? label : undefined}
 						onClick={() => onFilter(value)}
 					>
-						{label} {counts[value]}
+						{Icon ? (
+							<>
+								<Icon
+									aria-hidden
+									className={filter === value ? undefined : tone}
+								/>
+								<span className="sr-only">{label}</span>
+							</>
+						) : (
+							label
+						)}{" "}
+						<span className="tabular-nums">{counts[value]}</span>
 					</Button>
 				))}
 			</div>
@@ -102,10 +125,8 @@ export function MyVotes({
 									{photo.approved !== null && (
 										<span
 											aria-hidden
-											className={`absolute right-1 bottom-1 grid size-6 place-items-center rounded-full ${
-												photo.approved
-													? "bg-primary text-primary-foreground"
-													: "bg-destructive text-white"
+											className={`absolute right-1 bottom-1 grid size-6 place-items-center rounded-full bg-background/90 ${
+												photo.approved ? "text-primary" : "text-destructive"
 											}`}
 										>
 											{photo.approved ? (

@@ -12,7 +12,7 @@ export type ResultsGrouping = "photo" | "person";
 interface AlbumResultsProps {
 	albumId: number;
 	by: ResultsGrouping;
-	sort: PhotoSort;
+	sort: PhotoSort | undefined;
 	participantId: number | undefined;
 	onBy: (by: ResultsGrouping) => void;
 	onSort: (sort: PhotoSort) => void;
@@ -84,38 +84,33 @@ export function AlbumResults({
 
 	return (
 		<div className="flex flex-col gap-4">
-			<dl className="grid grid-cols-3 gap-2 text-center">
-				<div className="flex flex-col rounded-lg bg-muted p-2">
-					<dd className="text-lg font-semibold">{summary.participantCount}</dd>
-					<dt className="text-[0.8125rem] text-muted-foreground">
-						{summary.participantCount === 1 ? "persona" : "personas"}
-					</dt>
-				</div>
-				<div className="flex flex-col rounded-lg bg-muted p-2">
-					<dd className="text-lg font-semibold">{summary.voteCount}</dd>
-					<dt className="text-[0.8125rem] text-muted-foreground">
-						de {summary.possibleVotes} votos
-					</dt>
-				</div>
-				<div className="flex flex-col rounded-lg bg-muted p-2">
-					<dd className="text-lg font-semibold">{percent} %</dd>
-					<dt className="text-[0.8125rem] text-muted-foreground">completado</dt>
-				</div>
-			</dl>
+			{/* One line of context; the photos, not the numbers, lead the screen. */}
+			<p className="text-[0.8125rem] text-muted-foreground tabular-nums">
+				<strong className="font-semibold text-foreground">
+					{summary.participantCount}
+				</strong>{" "}
+				{summary.participantCount === 1 ? "persona" : "personas"} ·{" "}
+				<strong className="font-semibold text-foreground">
+					{summary.voteCount}
+				</strong>{" "}
+				de {summary.possibleVotes} votos · {percent} % completado
+			</p>
 
-			<nav className="flex gap-2" aria-label="Agrupar resultados">
+			<fieldset
+				className="m-0 flex gap-2 border-0 p-0"
+				aria-label="Agrupar resultados"
+			>
 				{GROUPINGS.map(({ value, label }) => (
 					<Button
 						key={value}
-						variant={by === value ? "default" : "outline"}
-						size="sm"
-						aria-current={by === value ? "page" : undefined}
+						variant={by === value ? "selected" : "outline"}
+						aria-pressed={by === value}
 						onClick={() => onBy(value)}
 					>
 						{label}
 					</Button>
 				))}
-			</nav>
+			</fieldset>
 
 			{by === "photo" ? (
 				<ResultsByPhoto

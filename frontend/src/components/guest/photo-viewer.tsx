@@ -68,7 +68,7 @@ export function PhotoViewer({
 				<span className="text-sm font-medium" aria-live="polite">
 					{index + 1} / {photos.length}
 				</span>
-				<span className="size-8" aria-hidden />
+				<span className="size-11" aria-hidden />
 			</header>
 
 			<div className="flex min-h-0 flex-1 items-center gap-1">
@@ -111,7 +111,7 @@ export function PhotoViewer({
 				)}
 				<div className="grid grid-cols-2 gap-3">
 					<Button
-						variant={photo.approved === false ? "default" : "outline"}
+						variant={photo.approved === false ? "destructive" : "outline"}
 						size="lg"
 						aria-pressed={photo.approved === false}
 						onClick={() => onVote(photo.id, false)}

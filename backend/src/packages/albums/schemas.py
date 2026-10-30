@@ -4,7 +4,7 @@ crosses the API boundary in a response is declared in responses.py instead.
 
 from typing import Annotated
 
-from pydantic import BaseModel, StringConstraints
+from pydantic import BaseModel, Json, StringConstraints
 
 from src.models import ApiModel
 
@@ -14,8 +14,9 @@ class AlbumRecord(BaseModel):
     title: str
     created_at: str
     photo_count: int
-    # The first photo uploaded, which the list shows as the album's cover.
-    cover_key: str | None
+    # The first photos uploaded, up to three, which the list shows as the
+    # album's cover mosaic. SQLite returns them as a JSON array.
+    cover_keys: Json[list[str]]
     share_token: str | None
     participant_count: int
 

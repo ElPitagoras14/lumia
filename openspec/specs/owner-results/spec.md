@@ -14,7 +14,7 @@ El dueño SHALL poder consultar los resultados de un álbum suyo. La respuesta S
   - la cantidad de participantes;
   - la cantidad de votos emitidos;
   - la cantidad de votos posibles (fotos × participantes).
-- **Fotos:** en orden de subida. Cada una con su miniatura firmada, la cantidad de votos a favor, la de votos en contra y la de participantes que la tienen pendiente.
+- **Fotos:** en orden de subida. Cada una con su miniatura firmada, su variante grande firmada, la cantidad de votos a favor, la de votos en contra y la de participantes que la tienen pendiente.
 - **Participantes:** en orden de entrada. Cada uno con su identificador, su nombre, la cantidad de fotos que calificó y sus votos a favor y en contra.
 
 Un par (foto, participante) sin voto SHALL contarse como pendiente, nunca como a favor ni como en contra. En cada foto, a favor + en contra + pendientes SHALL ser igual a la cantidad de participantes. En cada participante, las fotos calificadas SHALL ser igual a sus votos a favor + en contra, y nunca más que las fotos del álbum.
