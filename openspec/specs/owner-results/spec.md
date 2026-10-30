@@ -104,7 +104,15 @@ Un participante, con su cookie de invitado, SHALL NOT poder consultar los result
 
 ### Requirement: La interfaz del dueño muestra los resultados del álbum
 
-La pantalla de un álbum del dueño SHALL ofrecer un selector entre "Fotos" y "Resultados". La vista elegida SHALL conservarse al recargar y al usar el botón "atrás". "Resultados" SHALL mostrar:
+La pantalla de un álbum del dueño SHALL ofrecer dos pestañas de navegación, "Fotos" y "Resultados", con la pestaña activa marcada visualmente (subrayada) y anunciada como la vista actual a los lectores de pantalla. Las pestañas SHALL navegar entre vistas y SHALL NOT presentarse como botones de acción. La vista elegida SHALL conservarse al recargar y al usar el botón "atrás".
+
+La acción "Subir fotos" SHALL ser un botón flotante extendido, con un icono "+" y el texto "Subir fotos", fijo abajo a la derecha de la pantalla:
+
+- SHALL mostrarse solo en la pestaña "Fotos"; "Resultados" SHALL NOT mostrar botón flotante.
+- SHALL NOT mostrarse cuando el álbum tiene 50 fotos; en su lugar, la pantalla SHALL indicar "El álbum está lleno.".
+- La grilla de fotos SHALL reservar espacio inferior suficiente para que, al llegar al final, el botón no tape ninguna foto ni su botón de borrar.
+
+"Resultados" SHALL mostrar:
 
 - **El resumen:** personas, votos emitidos de los posibles y porcentaje completado.
 - **Un selector entre "Por foto" y "Por persona".**
@@ -162,3 +170,29 @@ Un álbum sin participantes SHALL mostrar un aviso que invite a compartirlo, en 
 
 - **WHEN** el dueño abre "Resultados" en un álbum al que nadie entró
 - **THEN** ve un aviso que lo invita a compartir el álbum
+
+#### Scenario: Cambiar de pestaña
+
+- **WHEN** el dueño está en "Fotos" y toca la pestaña "Resultados"
+- **THEN** ve los resultados, la pestaña "Resultados" queda marcada como activa
+- **AND** al usar "atrás" vuelve a "Fotos"
+
+#### Scenario: Subir fotos desde el botón flotante
+
+- **WHEN** el dueño está en "Fotos" en un álbum con menos de 50 fotos y toca "Subir fotos"
+- **THEN** se abre el diálogo para subir fotos
+
+#### Scenario: Sin botón flotante en resultados
+
+- **WHEN** el dueño está en "Resultados"
+- **THEN** no ve el botón flotante "Subir fotos"
+
+#### Scenario: Álbum lleno
+
+- **WHEN** el dueño abre "Fotos" en un álbum con 50 fotos
+- **THEN** no ve el botón flotante "Subir fotos" y ve el aviso "El álbum está lleno."
+
+#### Scenario: El botón flotante no tapa la última fila
+
+- **WHEN** el dueño, en un teléfono, baja hasta el final de la grilla de un álbum con fotos
+- **THEN** la última fila de fotos y sus botones de borrar quedan visibles por encima del botón flotante

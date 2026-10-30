@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowLeft, ImagePlus, Share2 } from "lucide-react";
-import { useState } from "react";
+import { ArrowLeft, Plus, Share2 } from "lucide-react";
+import { type ReactNode, useState } from "react";
 import { z } from "zod";
 import { AlbumPhotos } from "@/components/album-photos";
 import {
@@ -12,6 +12,12 @@ import type { PhotoSort } from "@/components/results/results-by-photo";
 import { ShareAlbumDialog } from "@/components/share-album-dialog";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipProvider,
+	TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { UploadPhotosDialog } from "@/components/upload-photos-dialog";
 import {
 	getAlbum,
@@ -64,6 +70,7 @@ function AlbumScreen() {
 
 	const photoCount = photos.data?.length ?? 0;
 	const remainingSlots = MAX_PHOTOS_PER_ALBUM - photoCount;
+	const albumFull = photos.isSuccess && remainingSlots <= 0;
 
 	if (album.isError) {
 		return (
@@ -81,7 +88,25 @@ function AlbumScreen() {
 	return (
 		<main className="mx-auto flex min-h-svh max-w-md flex-col gap-6 px-4 py-6">
 			<header className="flex flex-col gap-3">
-				<BackLink />
+				<div className="flex items-center justify-between">
+					<BackLink />
+					<TooltipProvider>
+						<Tooltip>
+							<TooltipTrigger asChild>
+								<Button
+									variant="ghost"
+									size="icon"
+									aria-label="Compartir"
+									disabled={album.isPending}
+									onClick={() => setShareOpen(true)}
+								>
+									<Share2 aria-hidden />
+								</Button>
+							</TooltipTrigger>
+							<TooltipContent>Compartir</TooltipContent>
+						</Tooltip>
+					</TooltipProvider>
+				</div>
 				{album.isPending ? (
 					<Skeleton className="h-8 w-2/3" />
 				) : (
@@ -92,44 +117,18 @@ function AlbumScreen() {
 						<p className="text-sm text-muted-foreground">
 							{photoCount} de {MAX_PHOTOS_PER_ALBUM} fotos
 						</p>
+						{albumFull && (
+							<p className="text-[0.8125rem] text-muted-foreground">
+								El álbum está lleno.
+							</p>
+						)}
 					</div>
 				)}
 			</header>
 
-			<section className="flex flex-col gap-2">
-				<div className="flex gap-2">
-					<Button
-						className="flex-1"
-						disabled={
-							album.isPending || photos.isPending || remainingSlots <= 0
-						}
-						onClick={() => setUploadOpen(true)}
-					>
-						<ImagePlus aria-hidden />
-						Subir fotos
-					</Button>
-					<Button
-						variant="outline"
-						className="flex-1"
-						disabled={album.isPending}
-						onClick={() => setShareOpen(true)}
-					>
-						<Share2 aria-hidden />
-						Compartir
-					</Button>
-				</div>
-				{remainingSlots <= 0 && (
-					<p className="text-[0.8125rem] text-muted-foreground">
-						El álbum está lleno.
-					</p>
-				)}
-			</section>
-
-			<nav className="flex gap-2" aria-label="Vista del álbum">
-				<Button
-					className="flex-1"
-					variant={view === "photos" ? "default" : "outline"}
-					aria-current={view === "photos" ? "page" : undefined}
+			<nav className="flex border-b border-border" aria-label="Vista del álbum">
+				<TabLink
+					active={view === "photos"}
 					onClick={() =>
 						go({
 							view: undefined,
@@ -140,16 +139,14 @@ function AlbumScreen() {
 					}
 				>
 					Fotos
-				</Button>
-				<Button
-					className="flex-1"
-					variant={view === "results" ? "default" : "outline"}
-					aria-current={view === "results" ? "page" : undefined}
+				</TabLink>
+				<TabLink
+					active={view === "results"}
 					disabled={album.isPending}
 					onClick={() => go({ view: "results" })}
 				>
 					Resultados
-				</Button>
+				</TabLink>
 			</nav>
 
 			{view === "photos" ? (
@@ -174,6 +171,18 @@ function AlbumScreen() {
 				/>
 			)}
 
+			{view === "photos" && photos.isSuccess && remainingSlots > 0 && (
+				<div className="pointer-events-none fixed inset-x-0 bottom-0 mx-auto flex max-w-md justify-end px-4 pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
+					<Button
+						className="pointer-events-auto h-14 gap-2.5 rounded-2xl px-5 text-[0.9375rem] font-bold shadow-lg"
+						onClick={() => setUploadOpen(true)}
+					>
+						<Plus className="size-5" aria-hidden />
+						Subir fotos
+					</Button>
+				</div>
+			)}
+
 			<UploadPhotosDialog
 				albumId={albumId}
 				remainingSlots={remainingSlots}
@@ -189,6 +198,35 @@ function AlbumScreen() {
 				/>
 			)}
 		</main>
+	);
+}
+
+// Navigation between views, so it is a nav item and not an action button.
+function TabLink({
+	active,
+	disabled,
+	onClick,
+	children,
+}: {
+	active: boolean;
+	disabled?: boolean;
+	onClick: () => void;
+	children: ReactNode;
+}) {
+	return (
+		<button
+			type="button"
+			aria-current={active ? "page" : undefined}
+			disabled={disabled}
+			onClick={onClick}
+			className={`-mb-px flex-1 border-b-[3px] py-3 text-[0.9375rem] font-semibold outline-none focus-visible:ring-3 focus-visible:ring-ring/50 disabled:opacity-50 ${
+				active
+					? "border-primary text-primary"
+					: "border-transparent text-muted-foreground hover:text-foreground"
+			}`}
+		>
+			{children}
+		</button>
 	);
 }
 
