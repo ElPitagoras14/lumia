@@ -30,13 +30,13 @@ docker compose up --build
 
 The app is served at `http://localhost:8080` (or the `HTTP_PORT` you set).
 
-| Service       | Role                                                                                         |
-| ------------- | -------------------------------------------------------------------------------------------- |
-| `nginx`       | The only service with a host port. Routes `/api` to the backend, `/images/` to imgproxy (cached) and the rest to the frontend |
-| `frontend`    | Serves the built SPA with its own nginx                                                      |
-| `migrate`     | Applies pending [dbmate](https://github.com/amacneil/dbmate) migrations and exits; the backend starts only after it succeeds |
-| `backend`     | FastAPI API on SQLite (`/data/lumia.db`)                                                      |
-| `transformer` | [imgproxy](https://imgproxy.net/): serves signed image variants from `/data`, read-only      |
+| Service             | Role                                                                                         |
+| ------------------- | -------------------------------------------------------------------------------------------- |
+| `lumia-nginx`       | The only service with a host port. Routes `/api` to the backend, `/images/` to imgproxy (cached) and the rest to the frontend |
+| `lumia-frontend`    | Serves the built SPA with its own nginx                                                      |
+| `lumia-migrate`     | Applies pending [dbmate](https://github.com/amacneil/dbmate) migrations and exits; the backend starts only after it succeeds |
+| `lumia-backend`     | FastAPI API on SQLite (`/data/lumia.db`)                                                      |
+| `lumia-transformer` | [imgproxy](https://imgproxy.net/): serves signed image variants from `/data`, read-only      |
 
 Data (`lumia.db` and the photo originals) lives in the `lumia-data` volume. `docker compose down -v` deletes it.
 
@@ -44,14 +44,14 @@ Data (`lumia.db` and the photo originals) lives in the `lumia-data` volume. `doc
 
 | Variable             | Used by                 | Description                                                    |
 | -------------------- | ----------------------- | -------------------------------------------------------------- |
-| `HTTP_PORT`          | `nginx`                 | Host port where the app is served                              |
+| `HTTP_PORT`          | `lumia-nginx`                 | Host port where the app is served                              |
 | `API_PROXY_TARGET`   | `pnpm dev` (optional)   | URL the Vite dev server forwards `/api` and `/images` to; unset, it uses the native backend on `:8000` |
-| `DATA_DIR`           | `backend`               | Directory with `lumia.db` and the originals (`/data` in containers, `./data` natively) |
-| `IMAGE_SIGNING_KEY`  | `transformer`, `backend` | Hex key for imgproxy URL signatures; the backend signs the variant URLs with it |
-| `IMAGE_SIGNING_SALT` | `transformer`, `backend` | Hex salt for imgproxy URL signatures                           |
-| `IMAGE_WARMUP_BASE_URL` | `backend`            | Where the backend requests a new photo's thumbnail to fill nginx's cache (default `http://nginx`, set by `compose.yaml`; optional, a failure is ignored) |
-| `ADMIN_EMAIL`        | `backend`               | Email of the owner account, created on the first start         |
-| `ADMIN_PASSWORD`     | `backend`               | Password of the owner account, 8 characters to 72 bytes        |
+| `DATA_DIR`           | `lumia-backend`               | Directory with `lumia.db` and the originals (`/data` in containers, `./data` natively) |
+| `IMAGE_SIGNING_KEY`  | `lumia-transformer`, `lumia-backend` | Hex key for imgproxy URL signatures; the backend signs the variant URLs with it |
+| `IMAGE_SIGNING_SALT` | `lumia-transformer`, `lumia-backend` | Hex salt for imgproxy URL signatures                           |
+| `IMAGE_WARMUP_BASE_URL` | `lumia-backend`            | Where the backend requests a new photo's thumbnail to fill nginx's cache (default `http://lumia-nginx`, set by `compose.yaml`; optional, a failure is ignored) |
+| `ADMIN_EMAIL`        | `lumia-backend`               | Email of the owner account, created on the first start         |
+| `ADMIN_PASSWORD`     | `lumia-backend`               | Password of the owner account, 8 characters to 72 bytes        |
 
 ## Albums and photos
 
@@ -117,15 +117,15 @@ No new environment variables.
 Migrations are plain SQL files in `dbmate/migrations/`, named `NNNN_description.sql` with a four-digit sequential number, each with a `-- migrate:up` and a `-- migrate:down` section. They are baked into the `migrate` image, so after adding one rebuild it:
 
 ```bash
-docker compose up --build migrate      # or the whole stack
-docker compose run --rm migrate        # migrate without starting the API
+docker compose up --build lumia-migrate  # or the whole stack
+docker compose run --rm lumia-migrate    # migrate without starting the API
 ```
 
 dbmate is pinned to `ghcr.io/amacneil/dbmate:2.35.1` in `dbmate/Dockerfile`, `backend/tests/migrate.py` and this README; change all three together (`grep -rn "amacneil/dbmate"`).
 
 ## Release and deployment
 
-Production runs on [Dokploy](https://docs.dokploy.com/) as a raw compose project whose content is [`compose.prod.yaml`](./compose.prod.yaml): the same stack as `compose.yaml`, but pulling prebuilt images instead of building them. Dokploy keeps its own copy of that file, so a change to it must be pasted into the Dokploy compose too. The domain, `lumia.elpitagoras14.qzz.io`, points at the `nginx` service, port 80.
+Production runs on [Dokploy](https://docs.dokploy.com/) as a raw compose project whose content is [`compose.prod.yaml`](./compose.prod.yaml): the same stack as `compose.yaml`, but pulling prebuilt images instead of building them. Dokploy keeps its own copy of that file, so a change to it must be pasted into the Dokploy compose too. The domain, `lumia.elpitagoras14.qzz.io`, points at the `lumia-nginx` service, port 80. Every service name carries the `lumia-` prefix: Dokploy attaches the routed service to its shared `dokploy-network`, where a generic name such as `frontend` would also resolve to other stacks' containers.
 
 A push to `main` runs [`.github/workflows/release.yml`](./.github/workflows/release.yml), which publishes only when `VERSION` is higher than the highest `v*` tag (a lower one fails the run; an equal one skips it):
 
@@ -181,7 +181,7 @@ The email has to be valid for the [email-validator](https://pypi.org/project/ema
 To set a new password (for instance, if you forgot it), run the command below. It asks for the password twice without showing it, and signs the owner out everywhere:
 
 ```bash
-docker compose exec backend python -m src.cli reset-password owner@example.com
+docker compose exec lumia-backend python -m src.cli reset-password owner@example.com
 # native mode, from backend/ (with DATA_DIR and the ADMIN_* variables set)
 uv run python -m src.cli reset-password owner@example.com
 ```
